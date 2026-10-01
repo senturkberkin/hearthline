@@ -141,6 +141,28 @@
   html { scroll-behavior: auto; }
 }
 
+.step-switcher { position: relative; }
+.step-switcher__active {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 8px) / 3);
+  border-radius: 9999px;
+  background: var(--primary);
+  box-shadow: 0 6px 18px -12px var(--primary);
+  transition: transform 340ms cubic-bezier(.22, 1, .36, 1);
+}
+.step-content--forward { animation: step-enter-forward 300ms cubic-bezier(.22, 1, .36, 1) both; }
+.step-content--back { animation: step-enter-back 300ms cubic-bezier(.22, 1, .36, 1) both; }
+@keyframes step-enter-forward { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes step-enter-back { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: translateX(0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .step-switcher__active { transition: none; }
+  .step-content--forward, .step-content--back { animation: none; }
+}
+
 .landing-section { scroll-margin-top: 7rem; }
 
 .section-nav {
