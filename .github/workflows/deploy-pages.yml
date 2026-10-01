@@ -32,9 +32,11 @@ jobs:
       - run: GITHUB_PAGES=true npm run build
       - name: Prepare direct-link pages
         run: |
-          mkdir -p design-preview/dist/setup design-preview/dist/results
+          mkdir -p design-preview/dist/setup design-preview/dist/results design-preview/dist/privacy design-preview/dist/terms
           cp design-preview/dist/index.html design-preview/dist/setup/index.html
           cp design-preview/dist/index.html design-preview/dist/results/index.html
+          cp design-preview/dist/index.html design-preview/dist/privacy/index.html
+          cp design-preview/dist/index.html design-preview/dist/terms/index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:

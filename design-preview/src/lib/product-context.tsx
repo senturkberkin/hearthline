@@ -22,7 +22,7 @@ function readSettings(): { language: Language; theme: Theme } {
     const saved = JSON.parse(localStorage.getItem(settingsKey) || "null")
     if ((saved?.language === "en" || saved?.language === "tr") && (saved?.theme === "light" || saved?.theme === "dark")) return saved
   } catch { /* Storage may be unavailable. */ }
-  return { language: navigator.language.toLowerCase().startsWith("tr") ? "tr" : "en", theme: "light" }
+  return { language: "tr", theme: "light" }
 }
 
 type ProductContextValue = {

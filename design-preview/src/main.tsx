@@ -4,12 +4,13 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 import { HomePage } from "@/pages/home"
 import { SetupPage } from "@/pages/setup"
 import { ResultsPage } from "@/pages/results"
+import { PrivacyPage, TermsPage } from "@/pages/legal"
 import { ProductProvider } from "@/lib/product-context"
 import "./index.css"
 
 function App() {
   const path = window.location.pathname.replace(/\/$/, "")
-  const page = path.endsWith("/setup") ? <SetupPage /> : path.endsWith("/results") ? <ResultsPage /> : <HomePage />
+  const page = path.endsWith("/setup") ? <SetupPage /> : path.endsWith("/results") ? <ResultsPage /> : path.endsWith("/privacy") ? <PrivacyPage /> : path.endsWith("/terms") ? <TermsPage /> : <HomePage />
   return <ProductProvider><TooltipProvider>{page}</TooltipProvider></ProductProvider>
 }
 
