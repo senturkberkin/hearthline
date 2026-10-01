@@ -48,7 +48,7 @@ export function CashFlowTimeline({ variant = "current", projection, compact = fa
         ? tx("Each point compares that year's average monthly rent with the mortgage payment after any monthly support, plus homeowner costs. Upfront costs are not included.", "Her nokta, o yılın ortalama aylık kirasını kredi taksiti ve ev sahipliği giderleriyle karşılaştırır. Aylık destek düşülür; peşin giderler dahil değildir.")
         : tx("Each point shows average monthly housing cost divided by projected net income for that year. Lower means a lighter burden; above 100% means housing alone exceeds income.", "Her nokta, o yılki ortalama aylık konut giderinin öngörülen net gelire oranıdır. Düşük oran daha hafif yük demektir; %100'ün üstünde konut gideri tek başına geliri aşar.")
   const format = (value: number) => mode === "share" ? `${value.toFixed(0)}%` : money(value)
-  const axis = (value: number) => mode === "share" ? `${value}%` : `${value < 0 ? "−" : ""}₺${Math.abs(Math.round(value / 1000))}k`
+  const axis = (value: number) => mode === "share" ? `${Math.round(value)}%` : `${value < 0 ? "−" : ""}₺${Math.abs(value) < 1000 ? Math.round(Math.abs(value)) : `${Math.round(Math.abs(value) / 1000)}k`}`
 
   return <section aria-label={title} className={compact ? "" : "rounded-[20px] bg-[#f7f9ff] p-5 sm:p-6"}>
     <div className="flex flex-wrap items-center justify-between gap-4">
@@ -67,7 +67,7 @@ export function CashFlowTimeline({ variant = "current", projection, compact = fa
     <ChartContainer config={config} className={`mt-2 w-full aspect-auto ${compact ? "h-[155px]" : "h-[270px] sm:h-[310px]"}`}>
       <LineChart accessibilityLayer data={data} margin={{ left: compact ? 0 : 4, right: 12, top: 14, bottom: 2 }}>
         <XAxis dataKey="year" tickLine={false} axisLine={false} tickMargin={10} minTickGap={25} tickFormatter={value => value === 0 ? tx("Today", "Bugün") : `Y${value}`} tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} />
-        {!compact && <YAxis tickLine={false} axisLine={false} width={47} tickFormatter={axis} tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} />}
+        <YAxis tickLine={false} axisLine={false} width={compact ? 44 : 58} tickCount={compact ? 3 : 5} tickFormatter={axis} tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} />
         {mode === "cash" && <ReferenceLine y={0} stroke="#aeb4bb" strokeDasharray="4 4" />}
         <ChartTooltip cursor={{ stroke: "#a9afb8", strokeDasharray: "3 4" }} content={<ChartTooltipContent
           labelFormatter={(_, payload) => `${tx("Year", "Yıl")} ${payload?.[0]?.payload?.year ?? 0}`}

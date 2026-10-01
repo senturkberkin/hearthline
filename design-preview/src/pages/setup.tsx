@@ -12,7 +12,7 @@ import { useProduct } from "@/lib/product-context"
 import { validateScenario, withPrincipal, type Scenario } from "@/lib/engine"
 import { sitePath } from "@/lib/utils"
 
-export function SetupPage() {
+export function SetupPage({ embedded = false, onComplete }: { embedded?: boolean; onComplete?: () => void } = {}) {
   const { scenario, setScenario, tx, money, percent } = useProduct()
   const [draft, setDraft] = React.useState<Scenario>(scenario)
   const [step, setStep] = React.useState(0)
@@ -24,6 +24,7 @@ export function SetupPage() {
   const observedRentRise = draft.rent > 0 && nextRent > 0 ? (nextRent / draft.rent - 1) * 100 : 0
   const suggestedReserve = Math.min(draft.savings, 3 * (draft.rent + draft.livingCosts))
   const suggestedDown = Math.max(0, Math.min(draft.propertyPrice, draft.savings - draft.reserve))
+  const Content = embedded ? "div" : "main"
 
   function continueStep() {
     if (step === 0 && draft.income <= 0) return setError(tx("Enter your monthly take-home pay.", "Aylık net gelirini gir."))
@@ -34,15 +35,16 @@ export function SetupPage() {
     if (problem) { setError(tx("Check the home price, savings and contribution amounts.", "Ev fiyatını, birikimi ve katkı tutarlarını kontrol et.")); return }
     setScenario(next)
     try { sessionStorage.setItem("hearthline.scenario.v1", JSON.stringify(next)) } catch { /* Continue in memory if storage is unavailable. */ }
-    window.location.assign(sitePath("/results/"))
+    if (onComplete) onComplete()
+    else window.location.assign(sitePath("/results/"))
   }
 
-  return <div className="min-h-screen bg-background text-foreground">
-    <BrandHeader mode="app" />
-    <div className="mx-auto max-w-[1240px] px-5 pb-16 pt-8 sm:px-8">
-      <div className="flex flex-wrap items-end justify-between gap-4 pb-6"><div><p className="text-[11px] font-semibold tracking-[.08em] text-primary uppercase">{tx("Your scenario", "Senaryon")}</p><h1 className="mt-2 text-[clamp(1.85rem,3vw,2.65rem)] leading-tight font-semibold tracking-[-.05em]">{tx("Start with what you know.", "Bildiklerinle başla.")}</h1></div><span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground"><ShieldCheck className="size-3.5" />{tx("Private in this browser", "Bu tarayıcıda gizli")}</span></div>
+  return <div className={embedded ? "bg-background text-foreground" : "min-h-screen bg-background text-foreground"}>
+    {!embedded && <BrandHeader mode="app" />}
+    <Content className="mx-auto max-w-[1240px] px-5 pb-16 pt-8 sm:px-8">
+      <div className="flex flex-wrap items-end justify-between gap-4 pb-6"><div><p className="text-[11px] font-semibold tracking-[.08em] text-primary uppercase">{embedded ? tx("Rent or buy?", "Kira mı, ev mi?") : tx("Your scenario", "Senaryon")}</p><h1 className="mt-2 text-[clamp(1.85rem,3vw,2.65rem)] leading-tight font-semibold tracking-[-.05em]">{embedded ? tx("Compare with your own numbers.", "Kendi rakamlarınla karşılaştır.") : tx("Start with what you know.", "Bildiklerinle başla.")}</h1></div><span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground"><ShieldCheck className="size-3.5" />{tx("Private in this browser", "Bu tarayıcıda gizli")}</span></div>
       <div className="grid gap-10 pt-6 lg:grid-cols-[minmax(0,1fr)_315px] lg:gap-16">
-        <main className="min-w-0">
+        <div className="min-w-0">
           <div className="mb-8 flex items-center gap-2" aria-label={tx(`Step ${step + 1} of 3`, `3 adımın ${step + 1}. adımı`)}>{steps.map((name, index) => <React.Fragment key={name}>{index > 0 && <div className="flex-1" />}<button type="button" onClick={() => { if (index <= step) { setStep(index); setError("") } }} disabled={index > step} aria-current={index === step ? "step" : undefined} className={`flex items-center gap-2 rounded-md px-1 py-1 text-[12px] font-semibold ${index === step ? "text-primary" : index < step ? "text-foreground" : "text-muted-foreground"}`}><span className={`grid size-6 place-items-center rounded-full border ${index === step ? "border-primary bg-primary text-primary-foreground" : index < step ? "border-primary text-primary" : "border-border"}`}>{index < step ? <Check className="size-3" /> : index + 1}</span>{name}</button></React.Fragment>)}</div>
 
           {step === 0 && <section aria-labelledby="income-heading" className="max-w-[680px]"><p className="text-[11px] font-semibold tracking-[.08em] text-muted-foreground uppercase">01 / {steps[0]}</p><h2 id="income-heading" className="mt-2 text-[25px] font-semibold tracking-[-.045em]">{tx("What comes in each month?", "Her ay eline ne geçiyor?")}</h2><p className="mt-2 text-[13px] text-muted-foreground">{tx("Use your take-home pay, after tax.", "Vergi sonrası net gelirini kullan.")}</p>
@@ -68,9 +70,9 @@ export function SetupPage() {
 
           {error && <p role="alert" className="mt-5 text-[12px] font-medium text-destructive">{error}</p>}
           <div className="mt-10 flex items-center justify-between"><Button type="button" variant="ghost" onClick={() => { setStep(Math.max(0, step - 1)); setError("") }} disabled={step === 0} className="px-0"><ArrowLeft className="size-4" />{tx("Back", "Geri")}</Button><Button type="button" onClick={continueStep} className="gap-2">{step === 2 ? tx("See results", "Sonuçları gör") : tx("Continue", "Devam et")}<ArrowRight className="size-4" /></Button></div>
-        </main>
+        </div>
         <aside className="hidden lg:block"><div className="sticky top-8 rounded-[20px] bg-[#f1f3ff] px-6 pb-6 pt-5"><p className="text-[11px] font-semibold tracking-[.08em] text-primary uppercase">{tx("At a glance", "Bir bakışta")}</p><h2 className="mt-2 text-[18px] font-semibold tracking-[-.035em]">{tx("Your starting point", "Başlangıç durumun")}</h2><dl className="mt-6 space-y-2">{[[tx("Monthly income", "Aylık gelir"), money(draft.income)], [tx("Current rent", "Güncel kira"), money(draft.rent)], [tx("Other spending", "Diğer giderler"), money(draft.livingCosts)], [tx("Home price", "Ev fiyatı"), money(draft.propertyPrice)], [tx("Savings", "Birikim"), money(draft.savings)]].map(([label, value]) => <div key={label} className="flex justify-between gap-3 rounded-[9px] bg-white/75 px-3 py-2.5 text-[12px]"><dt className="text-ink-soft">{label}</dt><dd className="font-semibold tabular-nums">{value}</dd></div>)}</dl><p className="mt-6 text-[12px] leading-5 text-muted-foreground">{tx("These are assumptions, not market predictions.", "Bunlar piyasa tahmini değil, varsayımlardır.")}</p></div></aside>
       </div>
-    </div>
+    </Content>
   </div>
 }

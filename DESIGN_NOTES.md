@@ -18,7 +18,7 @@ This records the reusable design approach behind the current site. It is a refer
 - Generous section spacing, but varied section widths and alignments. Rounded surfaces group related content; avoid horizontal divider lines.
 - Notebook-dot texture only as a quiet background cue, not behind dense reading or data.
 - Restrained motion: smooth section navigation and subtle reveal/hover feedback, with reduced-motion support.
-- Charts have clear units, a readable legend and a graph-specific explanation behind an info control.
+- Charts have numeric Y-axis labels, clear units, a readable legend and a graph-specific explanation behind an info control.
 
 ## Reusable implementation patterns
 
@@ -28,7 +28,7 @@ This records the reusable design approach behind the current site. It is a refer
 | Localized color and type tokens, dark-mode overrides, dotted backdrop and section navigation | `design-preview/src/index.css` | Move tokens first; copy page-specific selectors only if needed. |
 | Guided form and progressive disclosure | `design-preview/src/pages/setup.tsx` | Reuse the structure, not the housing fields or validation rules. |
 | Financial number entry | `design-preview/src/components/product/financial-input.tsx` | Preserve locale-aware input handling and caret behavior if the new project needs numbers. |
-| Small, interactive example in the hero | `design-preview/src/pages/home.tsx` (`ScenarioDemo`) | Replace with the new project's real interaction; keep it demonstrative, not decorative. |
+| Tool-first one-page composition | `design-preview/src/pages/home.tsx` | Put the working flow and same-page results before the existing editorial sections; keep supporting content below the point of action. |
 | Result hierarchy and adjustable assumptions | `design-preview/src/pages/results.tsx`, `design-preview/src/components/product/scenario-control-rail.tsx` | Lead with decision and constraints, then primary chart, milestones and details. |
 | Accessible comparison and timeline charts | `design-preview/src/components/product/rent-buy-comparison.tsx`, `design-preview/src/components/product/cash-flow-timeline.tsx` | Reuse chart presentation patterns, not domain-specific series. |
 
