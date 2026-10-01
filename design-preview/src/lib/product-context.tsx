@@ -49,7 +49,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.lang = settings.language
     document.documentElement.dataset.theme = settings.theme
     document.documentElement.classList.toggle("dark", settings.theme === "dark")
-    document.title = settings.language === "tr" ? "Hearthline — Senin senaryon, piyasa tahmini değil" : "Hearthline — Your scenario, not our prediction"
+    document.title = "Hearthline - Konut Kredisi Simülasyonu"
     document.querySelector('meta[name="theme-color"]')?.setAttribute("content", settings.theme === "dark" ? "#0a0a0a" : "#ffffff")
     try { localStorage.setItem(settingsKey, JSON.stringify(settings)) } catch { /* Keep settings in memory. */ }
   }, [settings])
