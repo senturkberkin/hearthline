@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="description" content="How Hearthline models renting, buying, and the assumptions behind your scenario." />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+    <title>Methodology — Hearthline</title>
+  </head>
+  <body data-page="methodology">
+    <main class="shell">
+      <header class="topbar"><a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M4 8h24M4 24h24M7 8c7 0 7 16 14 16M25 8c-7 0-7 16-14 16"/></svg></span>Hearthline</a><nav><a href="index.html" data-i18n="nav.planner">Scenario planner</a><select class="language-switch" id="languageSwitch" aria-label="Language"><option value="en">English</option><option value="tr">Türkçe</option></select></nav></header>
+      <article class="methodology-content">
+        <p class="eyebrow" data-i18n="method.title">Methodology</p>
+        <h1 data-i18n="method.hero">The numbers behind your scenario.</h1>
+        <p class="lede" data-i18n="method.intro">Hearthline shows what follows from your inputs. It does not tell you where salaries, rents, home prices, or rates will go.</p>
+        <div class="method-toc"><a href="#first-look" data-i18n="method.linkFirst">First look</a><a href="#monthly-model" data-i18n="method.linkMonthly">Monthly model</a><a href="#excluded" data-i18n="method.linkLimits">Limits</a></div>
+        <section id="first-look">
+          <h2 data-i18n="method.firstTitle">How the first look starts</h2>
+          <p data-i18n="method.firstBody">We use your income, rent, other monthly spending, savings, and target home price. We keep three months of rent plus living costs as a cash cushion, then make the remaining savings available for the down payment. You can change the down payment in the results.</p>
+          <p data-i18n="method.rateBody">If you do not enter a mortgage quote, the first look uses an illustrative 2.25% monthly rate over 10 years. That is not a current offer or a forecast. The results make this assumption visible and editable.</p>
+        </section>
+        <section id="monthly-model">
+          <h2 data-i18n="method.monthlyTitle">What happens each month</h2>
+          <p data-i18n="method.monthlyBody">The renting path subtracts rent, living costs, and existing debt payments from take-home income. The buying path subtracts the mortgage payment, homeowner costs, living costs, and debt payments, then adds any temporary monthly support you chose to include.</p>
+          <p data-i18n="method.timingBody">Income changes in the raise month you choose. Rent changes in the renewal month you choose. Living costs change at the start of each model year. The first look starts all future growth rates at 0% so a trend is never presented as a prediction.</p>
+          <h2 data-i18n="method.loanTitle">Mortgage and home equity</h2>
+          <p data-i18n="method.loanBody">The loan equals home price minus your down payment and any upfront support. We calculate a fixed monthly payment using the entered rate and term. Each payment covers interest first; the rest reduces the loan balance. For example, a ₺1,200,000 loan at 0% over 10 years would repay ₺10,000 of principal each month.</p>
+          <p data-i18n="method.equityBody">Principal repaid increases your stake in the home; it is not liquid cash. The cash-left comparison tracks monthly breathing room, not total wealth or a claim that one option is financially superior.</p>
+          <h2 data-i18n="method.supportTitle">Savings and optional support</h2>
+          <p data-i18n="method.supportBody">Buying uses your down payment and any entered buying or renovation costs upfront. The rent path keeps those savings liquid. Family support is off by default. If you include it, upfront help reduces the loan and monthly help ends after the number of months you specify.</p>
+        </section>
+        <section id="excluded">
+          <h2 data-i18n="method.excluded">What we do not predict</h2>
+          <p data-i18n="method.excludedBody">The model does not forecast property appreciation, investment returns, future interest rates, salaries, rents, or inflation. Taxes, insurance, resale costs, and the timing of a later purchase are not modeled. Home value and savings returns remain flat.</p>
+          <p data-i18n="method.referenceBody">The TÜİK figure shown beside rent growth is a dated official reference for context. It is not applied automatically and is not a forecast of your next rent increase. Check its linked source and your own circumstances before using it.</p>
+          <p class="method-limit" data-i18n="method.limitBody">Use this for planning and conversation, not as financial, mortgage, legal, or tax advice. The result changes when your assumptions change.</p>
+        </section>
+        <a class="button secondary method-return" href="index.html" data-i18n="method.return">Back to my scenario</a>
+      </article>
+    </main>
+    <footer><span>© 2026 Hearthline</span><a href="index.html" data-i18n="nav.planner">Scenario planner</a></footer>
+    <script src="i18n.js"></script>
+  </body>
+</html>

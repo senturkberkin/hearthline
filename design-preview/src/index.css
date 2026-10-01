@@ -1,0 +1,206 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-heading: var(--font-sans);
+    --font-sans: 'Geist Variable', sans-serif;
+    --color-rent: var(--rent);
+    --color-buy: var(--buy);
+    --color-canvas: var(--canvas);
+    --color-ink-soft: var(--ink-soft);
+    --color-hairline: var(--hairline);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+    --canvas: #ffffff;
+    --ink-soft: #526276;
+    --hairline: #dde7f3;
+    --rent: #4b88d0;
+    --buy: #214b86;
+    --background: #ffffff;
+    --foreground: #19283d;
+    --card: #ffffff;
+    --card-foreground: #19283d;
+    --popover: #ffffff;
+    --popover-foreground: #19283d;
+    --primary: #1768c5;
+    --primary-foreground: #ffffff;
+    --secondary: #edf4ff;
+    --secondary-foreground: #23476f;
+    --muted: #f2f6fc;
+    --muted-foreground: #64748a;
+    --accent: #e6f0ff;
+    --accent-foreground: #145baf;
+    --destructive: #ab5967;
+    --border: #dde7f3;
+    --input: #cfdced;
+    --ring: #4b9af3;
+    --chart-1: #4b88d0;
+    --chart-2: #214b86;
+    --chart-3: #7d8798;
+    --chart-4: #789bc2;
+    --chart-5: #a1b7d2;
+    --radius: 0.75rem;
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.205 0 0);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.97 0 0);
+    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+    --canvas: #0a0a0a;
+    --ink-soft: #c4c4c4;
+    --hairline: #3a3a3a;
+    --rent: #a8a8a8;
+    --buy: #f7f7f7;
+    --background: #0a0a0a;
+    --foreground: #f7f7f7;
+    --card: #222222;
+    --card-foreground: #f7f7f7;
+    --popover: #2a2a2a;
+    --popover-foreground: #f7f7f7;
+    --primary: #ffffff;
+    --primary-foreground: #111111;
+    --secondary: #303030;
+    --secondary-foreground: #f7f7f7;
+    --muted: #2c2c2c;
+    --muted-foreground: #b5b5b5;
+    --accent: #393939;
+    --accent-foreground: #ffffff;
+    --destructive: #f1f1f1;
+    --border: #454545;
+    --input: #595959;
+    --ring: #ffffff;
+    --chart-1: #a8a8a8;
+    --chart-2: #f7f7f7;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    }
+  button:not(:disabled), [role="button"]:not(:disabled) {
+    cursor: pointer;
+    }
+  html {
+    @apply font-sans;
+    scroll-behavior: smooth;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+.landing-section { scroll-margin-top: 7rem; }
+
+.section-nav {
+  background: rgb(255 255 255 / .7);
+  -webkit-backdrop-filter: blur(22px) saturate(1.25);
+  backdrop-filter: blur(22px) saturate(1.25);
+  box-shadow: 0 12px 30px -24px rgb(23 64 112 / .3);
+}
+.section-nav__item { color: #536b87; }
+.section-nav__item:hover { background: rgb(225 237 255 / .58); color: var(--primary); }
+.section-nav__item[data-active="true"] {
+  background: rgb(255 255 255 / .82);
+  color: var(--primary);
+  box-shadow: 0 7px 24px -18px rgb(23 64 112 / .5);
+}
+.section-nav__item:focus-visible { outline: 2px solid var(--ring); outline-offset: -3px; }
+.dark .section-nav { background: rgb(16 16 16 / .73); box-shadow: 0 12px 30px -24px rgb(0 0 0 / .85); }
+.dark .section-nav__item { color: #c5c5c5; }
+.dark .section-nav__item:hover { background: rgb(75 75 75 / .48); color: #fff; }
+.dark .section-nav__item[data-active="true"] { background: rgb(68 68 68 / .74); color: #fff; box-shadow: 0 7px 24px -18px #000; }
+
+.notebook-dots {
+  background-color: #f4f8ff;
+  background-image: radial-gradient(#abc8ec 1.25px, transparent 1.4px);
+  background-size: 21px 21px;
+}
+
+html:not(.dark) :is([class*="bg-[#f8f4fb]"], [class*="bg-[#f2f0fc]"]) { background-color: #e9f2ff !important; }
+html:not(.dark) :is([class*="bg-[#e2e8ff]"], [class*="bg-[#e9edf8]"], [class*="bg-[#e9edfa]"], [class*="bg-[#eaf0ff]"], [class*="bg-[#eaf1ff]"], [class*="bg-[#edf0fa]"], [class*="bg-[#edf2ff]"], [class*="bg-[#eef1ff]"], [class*="bg-[#eef4ff]"], [class*="bg-[#f0f3fc]"], [class*="bg-[#f1f3ff]"], [class*="bg-[#f1f6ff]"], [class*="bg-[#f2f4ff]"], [class*="bg-[#f3f7ff]"], [class*="bg-[#f4f6ff]"], [class*="bg-[#f5f7fd]"], [class*="bg-[#f5f8ff]"], [class*="bg-[#f7f8fd]"], [class*="bg-[#f7f9ff]"]) { background-color: #f2f6fc !important; }
+
+.dark .notebook-dots { background-color: #151515; background-image: radial-gradient(#606060 1.15px, transparent 1.35px); }
+.dark .bg-white { background-color: var(--card) !important; }
+.dark header.bg-white { background-color: #171717 !important; }
+.dark .min-h-screen.bg-white, .dark section.relative.overflow-hidden.bg-white { background-color: var(--background) !important; }
+.dark [data-state="on"][class*="data-[state=on]:bg-white"] { background-color: #474747 !important; color: #ffffff !important; }
+.dark [class*="bg-white/"] { background-color: rgb(50 50 50 / .8) !important; }
+.dark :is([class*="bg-[#fceff0]"], [class*="bg-[#fdf0f2]"]) { background-color: #343434 !important; }
+.dark :is([class*="bg-[#eaf5f2]"], [class*="bg-[#eaf6f3]"], [class*="bg-[#edf5f2]"], [class*="bg-[#f8f4fb]"], [class*="bg-[#f2f0fc]"]) { background-color: #363636 !important; }
+.dark :is([class*="bg-[#e2e8ff]"], [class*="bg-[#e9edf8]"], [class*="bg-[#e9edfa]"], [class*="bg-[#eaf0ff]"], [class*="bg-[#eaf1ff]"], [class*="bg-[#edf0fa]"], [class*="bg-[#edf2ff]"], [class*="bg-[#eef1ff]"], [class*="bg-[#eef4ff]"], [class*="bg-[#f0f3fc]"], [class*="bg-[#f1f3ff]"], [class*="bg-[#f1f6ff]"], [class*="bg-[#f2f4ff]"], [class*="bg-[#f3f7ff]"], [class*="bg-[#f4f6ff]"], [class*="bg-[#f5f7fd]"], [class*="bg-[#f5f8ff]"], [class*="bg-[#f7f8fd]"], [class*="bg-[#f7f9ff]"]) { background-color: #303030 !important; }
+.dark [class*="text-[#5e6a8c]"] { color: #c4c4c4 !important; }
+.dark [class*="text-[#a8545b]"] { color: var(--destructive) !important; }
+.dark [class*="hover:bg-[#304579]"]:hover { background-color: #e5e5e5 !important; }
+
+.section-enter {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 650ms cubic-bezier(.23,1,.32,1), transform 650ms cubic-bezier(.23,1,.32,1);
+}
+.section-enter[data-visible="true"] { opacity: 1; transform: translateY(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  .section-enter { opacity: 1; transform: none; transition: none; }
+}
+
+.month-picker {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  width: 100%;
+}
+
+@media (min-width: 700px) {
+  .month-picker { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+}

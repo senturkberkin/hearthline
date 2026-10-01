@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Explore a private rent-versus-buy housing scenario using your own assumptions." />
+    <meta name="theme-color" content="#f2efe8" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="canonical" href="/" />
+    <title>Hearthline — Your housing scenario, not our prediction</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <a class="brand" href="#top" aria-label="Hearthline home"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M4 8h24M4 24h24M7 8c7 0 7 16 14 16M25 8c-7 0-7 16-14 16"/></svg></span>Hearthline</a>
+        <nav><a href="methodology.html" target="_blank" rel="noopener" data-i18n="nav.methodology">How it works</a><button class="quiet" id="clearBtn" type="button" data-i18n="action.clear">Clear data</button><select class="language-switch" id="languageSwitch" aria-label="Language"><option value="en">English</option><option value="tr">Türkçe</option></select></nav>
+      </header>
+
+      <section class="intro" id="top">
+        <div class="intro-copy">
+          <p class="eyebrow" data-i18n="hero.kicker">Your scenario, not our prediction.</p>
+          <h1 data-i18n="hero.compactTitle">Rent or buy? See what fits.</h1>
+          <p class="lede" data-i18n="hero.compactBody">Compare both paths using your own income, costs and assumptions. Your data stays here; no market predictions.</p>
+        </div>
+        <div class="hero-map" aria-hidden="true">
+          <div class="map-top"><span>01 / 02</span><span>HEARTHLINE</span></div>
+          <svg viewBox="0 0 420 210" preserveAspectRatio="xMidYMid meet">
+            <path class="map-guide" d="M27 104H383" />
+            <path class="map-rent" d="M27 104 C107 104 113 45 213 45 H370" />
+            <path class="map-buy" d="M27 104 C107 104 113 165 213 165 H370" />
+            <circle class="map-origin" cx="27" cy="104" r="6" />
+            <circle class="map-end-rent" cx="370" cy="45" r="4" />
+            <circle class="map-end-buy" cx="370" cy="165" r="4" />
+            <text x="26" y="132" data-i18n="map.today">TODAY</text><text x="300" y="31" data-i18n="map.renting">RENTING</text><text x="313" y="194" data-i18n="map.buying">BUYING</text>
+          </svg>
+          <div class="map-footer"><span data-i18n="map.start">One starting point</span><span data-i18n="map.paths">Two possible paths</span></div>
+        </div>
+      </section>
+
+      <section class="workspace" aria-label="Scenario planner">
+        <form id="scenarioForm" novalidate>
+          <div class="form-heading"><div><p class="eyebrow" data-i18n="quick.kicker">Start with today</p><h2 data-i18n="quick.title">Start with what you know.</h2></div></div>
+          <div class="quick-groups">
+            <div class="quick-group">
+              <h3 data-i18n="quick.today">Your month</h3>
+              <div class="quick-rows">
+                <label><span data-i18n="quick.earn">You take home</span><span class="input-wrap"><input data-key="income" inputmode="numeric" required placeholder="75,000" /><span>TRY</span></span></label>
+                <label><span data-i18n="quick.payRent">You pay in rent</span><span class="input-wrap"><input data-key="rent" inputmode="numeric" required placeholder="28,000" /><span>TRY</span></span></label>
+                <label><span data-i18n="quick.spend">You spend besides housing</span><span class="input-wrap"><input data-key="livingCosts" inputmode="numeric" required placeholder="22,000" /><span>TRY</span></span></label>
+              </div>
+            </div>
+            <div class="quick-group">
+              <h3 data-i18n="quick.home">The home you're considering</h3>
+              <div class="quick-rows">
+                <label><span data-i18n="quick.have">You have in savings</span><span class="input-wrap"><input data-key="savings" inputmode="numeric" required placeholder="500,000" /><span>TRY</span></span></label>
+                <label><span data-i18n="quick.costs">The home costs</span><span class="input-wrap"><input data-key="propertyPrice" inputmode="numeric" required placeholder="4,500,000" /><span>TRY</span></span></label>
+              </div>
+              <details class="quote-disclosure" id="quoteDetails"><summary data-i18n="quick.haveQuote">Have a mortgage quote?</summary><label><span data-i18n="quick.quoteRate">Monthly interest rate you were quoted</span><span class="input-wrap"><input id="quoteRate" inputmode="decimal" placeholder="2.25" /><span>%</span></span></label></details>
+            </div>
+          </div>
+          <div class="form-actions"><button class="button" id="nextBtn" type="submit" data-i18n="quick.show">See my scenario</button><button class="quiet" id="exampleBtn" type="button" data-i18n="action.example">Try a fictional example</button></div>
+          <p class="privacy"><span data-i18n="quick.trust">Private in this browser · No account · Scenario, not forecast</span> <a href="methodology.html" target="_blank" rel="noopener" data-i18n="nav.methodologyShort">Methodology</a></p>
+          <p class="error" id="formError" role="alert"></p>
+        </form>
+
+      </section>
+
+      <section id="results" hidden aria-live="polite">
+        <div class="results-head"><div><p class="eyebrow" data-i18n="results.kicker">Your scenario</p><h2 id="resultsTitle"></h2></div><button class="button secondary mobile-adjust" id="adjustOpen" type="button" data-i18n="action.adjust">Adjust scenario</button></div>
+        <div class="results-layout">
+          <div class="results-main">
+            <article class="takeaway"><p class="eyebrow" data-i18n="results.today">What this means today</p><h3 id="takeawayTitle"></h3><p id="takeawayBody" hidden></p></article>
+            <div class="comparison" id="comparison"></div>
+            <div class="findings" id="findings"></div>
+            <article class="panel chart-panel primary-chart"><div class="chart-top"><div><p class="eyebrow" data-i18n="results.overTime">Over time</p><h3 id="chartTitle"></h3></div><div class="segmented" role="group" aria-label="Chart metric"><button type="button" data-chart-mode="burden" aria-pressed="false" data-i18n="chart.burden">Income share</button><button type="button" data-chart-mode="cost" aria-pressed="false" data-i18n="chart.cost">Housing cost</button><button type="button" class="selected" data-chart-mode="cash" aria-pressed="true" data-i18n="chart.cash">Cash left</button></div></div><div class="chart-key"><span class="rent-key" data-i18n="scenario.renting">Renting</span><span class="buyer-key" data-i18n="scenario.buying">Buying</span></div><details class="chart-details"><summary data-i18n="action.details">Details</summary><p class="chart-context" id="chartContext"></p></details><div class="chart-scroll"><svg id="mainChart" viewBox="0 0 760 300" role="img"></svg></div><p class="chart-readout" id="chartReadout" aria-live="polite"></p></article>
+            <details class="assumption-disclosure"><summary data-i18n="quick.seeAssumptions">Assumptions behind this view</summary><p id="assumptionSummary" class="assumption-summary"></p><a href="methodology.html" target="_blank" rel="noopener" data-i18n="nav.methodologyShort">Methodology</a></details>
+            <div class="detail-tabs" role="tablist" aria-label="Result details"><button type="button" class="selected" data-result-tab="overview" aria-selected="true" data-i18n="tab.overview">Overview</button><button type="button" data-result-tab="timeline" aria-selected="false" data-i18n="tab.timeline">Timeline</button><button type="button" data-result-tab="mortgage" aria-selected="false" data-i18n="tab.mortgage">Mortgage</button><button type="button" data-result-tab="stress" aria-selected="false" data-i18n="tab.stress">Stress test</button></div>
+            <div class="detail-panel" data-panel="overview"><details class="result-details"><summary data-i18n="results.levers">What can change this?</summary><div id="levers" class="insight-list"></div></details></div>
+            <div class="detail-panel" data-panel="timeline" hidden><div class="panel"><div class="table-title"><div><h3 data-i18n="timeline.title">Yearly breakdown</h3><p class="muted" data-i18n="timeline.note">Annual amounts, except monthly income.</p></div></div><div class="table-wrap"><table><thead><tr><th data-i18n="timeline.year">Year</th><th data-i18n="timeline.income">Monthly income</th><th data-i18n="timeline.rent">Rent paid</th><th data-i18n="timeline.buyHousing">Buying housing cash</th><th data-i18n="timeline.balance">Loan left</th><th data-i18n="timeline.rentCash">Renting cash left</th><th data-i18n="timeline.buyCash">Buying cash left</th></tr></thead><tbody id="annualRows"></tbody></table></div></div></div>
+            <div class="detail-panel" data-panel="mortgage" hidden><div class="panel"><h3 data-i18n="mortgage.title">Mortgage details</h3><div class="mortgage-stats" id="mortgageStats"></div><button class="button secondary" id="thresholdBtn" type="button" data-i18n="mortgage.calculate">Calculate a lower-burden down payment</button><p class="calculated-output" id="thresholdResult" aria-live="polite"></p></div></div>
+            <div class="detail-panel" data-panel="stress" hidden><div class="panel"><h3 data-i18n="stress.title">Test one change</h3><p class="muted" data-i18n="stress.note">This test does not change your active scenario.</p><div class="stress-controls"><label><span data-i18n="stress.change">Change</span><select id="stressVariant"><option value="salary" data-i18n="stress.salary">Income growth 5 points lower</option><option value="support" data-i18n="stress.support">Support ends 12 months earlier</option><option value="expenses" data-i18n="stress.expenses">Living costs grow 5 points faster</option></select></label><button class="button" id="stressRun" type="button" data-i18n="stress.run">Run stress test</button></div><p class="calculated-output" id="stressResult" aria-live="polite"></p></div></div>
+          </div>
+          <aside class="adjust-panel" id="adjustPanel" aria-label="Adjust your scenario">
+            <div class="adjust-head"><div><p class="eyebrow" data-i18n="adjust.kicker">Explore changes</p><h3 data-i18n="adjust.title">Adjust your scenario</h3></div><button class="adjust-close" id="adjustClose" type="button" aria-label="Close adjustments">×</button></div>
+            <p class="adjust-note" data-i18n="adjust.live" hidden>Changes update the comparison automatically.</p>
+            <div class="adjust-fields" id="adjustFields"></div>
+            <div class="rent-reference" id="rentReference"><div><p class="eyebrow"></p><p class="reference-value" id="rentReferenceValue"></p><p class="muted" id="rentReferenceStatus" hidden></p></div><div class="reference-actions"><button class="quiet" id="rentReferenceUse" type="button"></button><a id="rentReferenceLink" href="#" target="_blank" rel="noopener" data-i18n="rent.source">Source</a></div></div>
+            <details class="advanced"><summary data-i18n="adjust.more">More assumptions</summary>
+              <div class="adjust-fields" id="adjustMore"></div>
+              <div class="month-field"><span class="field-label" data-i18n="field.raiseMonth">Usual raise month</span><div class="month-selector" data-month-selector="raiseMonth"></div></div>
+              <div class="month-field"><span class="field-label" data-i18n="field.rentRenewal">Next rent renewal month</span><div class="month-selector" data-month-selector="rentRenewal"></div></div>
+              <div class="salary-simple"><h4 data-i18n="salary.simpleTitle">What did you earn before your latest raise?</h4><label><span data-i18n="salary.previous">Previous monthly take-home pay</span><span class="input-wrap"><input id="previousPay" inputmode="numeric" placeholder="58,000" /><span>TRY</span></span></label><p class="salary-simple-result" id="simpleRaise"></p><button class="quiet" id="simpleRaiseUse" type="button" hidden></button><details class="inline-disclosure" id="salaryHistoryDetails"><summary data-i18n="salary.moreHistory">Add more salary history</summary><p class="muted" data-i18n="salary.note">Past raises are not a forecast.</p><div class="salary-entries" id="salaryHistoryEntries"></div><button class="quiet" id="salaryAdd" type="button" data-i18n="salary.add">Add previous salary year</button><div class="salary-summary" id="salaryHistorySummary"></div><div class="salary-actions"><label><span data-i18n="salary.choose">Use as future assumption</span><select id="salaryChoice"><option value="latest" data-i18n="salary.latest">Latest observed growth</option><option value="average" data-i18n="salary.average">Historical average</option></select></label><button class="button secondary" id="salaryUse" type="button" data-i18n="salary.use">Use selected rate</button></div></details></div>
+              <label class="support-toggle"><input type="checkbox" id="supportToggle" /><span data-i18n="support.optIn">Include family support</span></label><div class="adjust-fields" id="supportFields" hidden></div>
+            </details>
+            <div class="preset-group"><p class="eyebrow" data-i18n="adjust.whatIf">What if…</p><div class="preset-list"><button type="button" data-preset="cheaper" data-i18n="preset.cheaper">Home price −10%</button><button type="button" data-preset="down" data-i18n="preset.down">Down payment +10%</button><button type="button" data-preset="salary" data-i18n="preset.salary">Income growth −2 pts</button><button type="button" data-preset="support" data-i18n="preset.support">Support ends 12 months earlier</button></div></div>
+            <p class="adjust-error" id="adjustError" role="alert"></p><button class="quiet adjust-reset" id="adjustReset" type="button" data-i18n="action.reset">Reset to initial scenario</button><div class="adjust-delta" id="adjustDelta" aria-live="polite"></div>
+          </aside>
+        </div>
+        <div class="adjust-backdrop" id="adjustBackdrop" hidden></div>
+        <details class="disclaimer"><summary data-i18n="action.details">Details</summary><p data-i18n="legal.disclaimer">Educational scenario modelling only. This is not financial, mortgage, investment, legal, or tax advice. Results depend on your assumptions and are not predictions.</p></details>
+      </section>
+    </main>
+    <footer><span>© 2026 Hearthline</span><a href="methodology.html" target="_blank" rel="noopener" data-i18n="nav.methodologyShort">Methodology</a><a href="#top" data-i18n="nav.top">Back to top</a></footer>
+    <script src="i18n.js?v=2"></script><script src="input-utils.js"></script><script src="month-selector.js"></script><script src="salary-history.js"></script><script src="rent-reference.js"></script><script src="app.js?v=3"></script>
+  </body>
+</html>

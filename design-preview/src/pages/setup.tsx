@@ -1,0 +1,75 @@
+import * as React from "react"
+import { ArrowLeft, ArrowRight, Check, ChevronDown, Plus, ShieldCheck } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Field, FieldLabel } from "@/components/ui/field"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { BrandHeader } from "@/components/product/shell"
+import { MoneyInput, PercentInput } from "@/components/product/financial-input"
+import { IncomeHistoryCalculator } from "@/components/product/income-history-calculator"
+import { MonthPicker } from "@/components/product/month-picker"
+import { useProduct } from "@/lib/product-context"
+import { validateScenario, withPrincipal, type Scenario } from "@/lib/engine"
+
+export function SetupPage() {
+  const { scenario, setScenario, tx, money, percent } = useProduct()
+  const [draft, setDraft] = React.useState<Scenario>(scenario)
+  const [step, setStep] = React.useState(0)
+  const [nextRent, setNextRent] = React.useState(0)
+  const [supportOpen, setSupportOpen] = React.useState(draft.upfrontSupport > 0 || draft.monthlySupport > 0)
+  const [error, setError] = React.useState("")
+  const steps = [tx("Income", "Gelir"), tx("Rent", "Kira"), tx("Home", "Ev")]
+  const update = (patch: Partial<Scenario>) => setDraft(current => ({ ...current, ...patch }))
+  const observedRentRise = draft.rent > 0 && nextRent > 0 ? (nextRent / draft.rent - 1) * 100 : 0
+  const suggestedReserve = Math.min(draft.savings, 3 * (draft.rent + draft.livingCosts))
+  const suggestedDown = Math.max(0, Math.min(draft.propertyPrice, draft.savings - draft.reserve))
+
+  function continueStep() {
+    if (step === 0 && draft.income <= 0) return setError(tx("Enter your monthly take-home pay.", "Aylık net gelirini gir."))
+    if (step === 1 && draft.rent <= 0) return setError(tx("Enter your current rent.", "Güncel kiranı gir."))
+    if (step < 2) { setStep(step + 1); setError(""); window.scrollTo({ top: 0, behavior: "smooth" }); return }
+    const next = withPrincipal({ ...draft, upfrontSupport: supportOpen ? draft.upfrontSupport : 0, monthlySupport: supportOpen ? draft.monthlySupport : 0, supportMonths: supportOpen ? draft.supportMonths : 0 })
+    const problem = validateScenario(next)
+    if (problem) { setError(tx("Check the home price, savings and contribution amounts.", "Ev fiyatını, birikimi ve katkı tutarlarını kontrol et.")); return }
+    setScenario(next)
+    try { sessionStorage.setItem("hearthline.scenario.v1", JSON.stringify(next)) } catch { /* Continue in memory if storage is unavailable. */ }
+    window.location.assign("/results")
+  }
+
+  return <div className="min-h-screen bg-background text-foreground">
+    <BrandHeader mode="app" />
+    <div className="mx-auto max-w-[1240px] px-5 pb-16 pt-8 sm:px-8">
+      <div className="flex flex-wrap items-end justify-between gap-4 pb-6"><div><p className="text-[11px] font-semibold tracking-[.08em] text-primary uppercase">{tx("Your scenario", "Senaryon")}</p><h1 className="mt-2 text-[clamp(1.85rem,3vw,2.65rem)] leading-tight font-semibold tracking-[-.05em]">{tx("Start with what you know.", "Bildiklerinle başla.")}</h1></div><span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground"><ShieldCheck className="size-3.5" />{tx("Private in this browser", "Bu tarayıcıda gizli")}</span></div>
+      <div className="grid gap-10 pt-6 lg:grid-cols-[minmax(0,1fr)_315px] lg:gap-16">
+        <main className="min-w-0">
+          <div className="mb-8 flex items-center gap-2" aria-label={tx(`Step ${step + 1} of 3`, `3 adımın ${step + 1}. adımı`)}>{steps.map((name, index) => <React.Fragment key={name}>{index > 0 && <div className="flex-1" />}<button type="button" onClick={() => { if (index <= step) { setStep(index); setError("") } }} disabled={index > step} aria-current={index === step ? "step" : undefined} className={`flex items-center gap-2 rounded-md px-1 py-1 text-[12px] font-semibold ${index === step ? "text-primary" : index < step ? "text-foreground" : "text-muted-foreground"}`}><span className={`grid size-6 place-items-center rounded-full border ${index === step ? "border-primary bg-primary text-primary-foreground" : index < step ? "border-primary text-primary" : "border-border"}`}>{index < step ? <Check className="size-3" /> : index + 1}</span>{name}</button></React.Fragment>)}</div>
+
+          {step === 0 && <section aria-labelledby="income-heading" className="max-w-[680px]"><p className="text-[11px] font-semibold tracking-[.08em] text-muted-foreground uppercase">01 / {steps[0]}</p><h2 id="income-heading" className="mt-2 text-[25px] font-semibold tracking-[-.045em]">{tx("What comes in each month?", "Her ay eline ne geçiyor?")}</h2><p className="mt-2 text-[13px] text-muted-foreground">{tx("Use your take-home pay, after tax.", "Vergi sonrası net gelirini kullan.")}</p>
+            <div className="mt-7 grid max-w-[560px] gap-5 sm:grid-cols-2"><MoneyInput id="current-income" label={tx("Current monthly pay", "Güncel aylık net gelir")} value={draft.income} onValueChange={income => update({ income })} invalid={Boolean(error && draft.income <= 0)} /><PercentInput id="income-growth" label={tx("Expected annual income growth", "Beklenen yıllık gelir artışı")} value={draft.incomeGrowth} onValueChange={incomeGrowth => update({ incomeGrowth })} /></div>
+            <IncomeHistoryCalculator currentIncome={draft.income} onApply={incomeGrowth => update({ incomeGrowth })} />
+            <Collapsible className="mt-6"><CollapsibleTrigger asChild><Button variant="ghost" size="sm" className="px-0 text-primary">{tx("More income timing", "Zam ayını seç")} <ChevronDown className="size-3.5" /></Button></CollapsibleTrigger><CollapsibleContent className="pt-4"><MonthPicker value={draft.raiseMonth} onValueChange={raiseMonth => update({ raiseMonth })} label={tx("Usual raise month", "Zam ayı")} /></CollapsibleContent></Collapsible>
+          </section>}
+
+          {step === 1 && <section aria-labelledby="rent-heading" className="max-w-[680px]"><p className="text-[11px] font-semibold tracking-[.08em] text-muted-foreground uppercase">02 / {steps[1]}</p><h2 id="rent-heading" className="mt-2 text-[25px] font-semibold tracking-[-.045em]">{tx("What does your month cost?", "Aylık giderlerin ne kadar?")}</h2><p className="mt-2 text-[13px] text-muted-foreground">{tx("Keep rent separate from everything else.", "Kirayı diğer giderlerden ayrı gir.")}</p>
+            <div className="mt-7 grid gap-5 sm:grid-cols-2"><MoneyInput id="current-rent" label={tx("Current monthly rent", "Güncel aylık kira")} value={draft.rent} onValueChange={rent => update({ rent })} invalid={Boolean(error && draft.rent <= 0)} /><MoneyInput id="living-costs" label={tx("Other monthly expenses", "Aylık diğer giderler")} value={draft.livingCosts} onValueChange={livingCosts => update({ livingCosts })} /></div>
+            <div className="mt-6 max-w-[280px]"><PercentInput id="expense-growth" label={tx("Annual increase in other expenses", "Diğer giderlerde yıllık artış")} value={draft.expenseGrowth} onValueChange={expenseGrowth => update({ expenseGrowth })} /></div>
+            <Collapsible className="mt-8"><CollapsibleTrigger asChild><Button variant="ghost" size="sm" className="px-0 text-primary">{tx("Know your next rent?", "Sonraki kiranı biliyor musun?")} <ChevronDown className="size-3.5" /></Button></CollapsibleTrigger><CollapsibleContent className="grid gap-4 pt-5 sm:grid-cols-2"><MoneyInput id="next-rent" label={tx("Next monthly rent", "Sonraki aylık kira")} value={nextRent} onValueChange={setNextRent} />{nextRent > 0 && <div className="self-end pb-2 text-[12px] text-muted-foreground">{tx("That is a", "Bu, ")} <strong className="text-foreground">{percent(observedRentRise)}</strong> {tx("change.", "değişimdir.")}</div>}</CollapsibleContent></Collapsible>
+            <div className="mt-8 max-w-[220px]"><PercentInput id="rent-growth" label={tx("Future annual rent change", "Gelecek yıllık kira artışı")} value={draft.rentGrowth} onValueChange={rentGrowth => update({ rentGrowth })} /></div>
+            <Collapsible className="mt-6"><CollapsibleTrigger asChild><Button variant="ghost" size="sm" className="px-0 text-primary">{tx("Rent renewal timing", "Kira artış ayını seç")} <ChevronDown className="size-3.5" /></Button></CollapsibleTrigger><CollapsibleContent className="pt-4"><MonthPicker value={draft.rentRenewal} onValueChange={rentRenewal => update({ rentRenewal })} label={tx("Rent renewal month", "Kira yenileme ayı")} /></CollapsibleContent></Collapsible>
+          </section>}
+
+          {step === 2 && <section aria-labelledby="home-heading" className="max-w-[680px]"><p className="text-[11px] font-semibold tracking-[.08em] text-muted-foreground uppercase">03 / {steps[2]}</p><h2 id="home-heading" className="mt-2 text-[25px] font-semibold tracking-[-.045em]">{tx("What home are you considering?", "Nasıl bir ev düşünüyorsun?")}</h2><p className="mt-2 text-[13px] text-muted-foreground">{tx("Start with the asking price and savings you can use.", "Ev fiyatı ve kullanılabilir birikiminden başla.")}</p>
+            <div className="mt-7 grid gap-5 sm:grid-cols-2"><MoneyInput id="home-price" label={tx("Home price", "Ev fiyatı")} value={draft.propertyPrice} onValueChange={propertyPrice => update({ propertyPrice })} invalid={Boolean(error && draft.propertyPrice <= 0)} /><MoneyInput id="savings" label={tx("Your savings", "Birikimin")} value={draft.savings} onValueChange={savings => update({ savings })} /><MoneyInput id="down-payment" label={tx("Your down payment", "Kendi peşinatın")} value={draft.downPayment} onValueChange={downPayment => update({ downPayment })} /></div>
+            <div className="mt-6 grid grid-cols-2 gap-3 text-[12px]"><div className="rounded-[14px] bg-[#f4f6ff] p-4"><span className="block text-muted-foreground">{tx("Suggested cash cushion", "Acil durum için önerilen birikim")}</span><strong className="mt-1 block text-[16px] font-semibold tabular-nums">{money(suggestedReserve)}</strong></div><div className="rounded-[14px] bg-[#eaf0ff] p-4"><span className="block text-muted-foreground">{tx("Available after your reserve", "Peşinata ayrılabilecek tutar")}</span><strong className="mt-1 block text-[16px] font-semibold tabular-nums">{money(suggestedDown)}</strong></div></div>
+            <Collapsible className="mt-5"><CollapsibleTrigger asChild><Button variant="ghost" size="sm" className="px-0 text-primary">{tx("Loan and advanced assumptions", "Kredi ve diğer varsayımlar")} <ChevronDown className="size-3.5" /></Button></CollapsibleTrigger><CollapsibleContent className="grid gap-5 rounded-[16px] bg-[#f5f7fd] p-5 sm:grid-cols-2"><PercentInput id="rate" label={tx("Monthly interest rate", "Aylık faiz oranı")} value={draft.rate} onValueChange={rate => update({ rate })} /><Field><FieldLabel htmlFor="loan-term">{tx("Loan term (years)", "Kredi vadesi (yıl)")}</FieldLabel><Input id="loan-term" type="number" min="1" max="40" value={draft.termYears} onChange={event => update({ termYears: Number(event.target.value) })} /></Field><MoneyInput id="reserve" label={tx("Cash reserve", "Acil durum birikimi")} value={draft.reserve} onValueChange={reserve => update({ reserve })} /><MoneyInput id="closing-costs" label={tx("Buying costs", "Satın alma giderleri")} value={draft.closingCosts} onValueChange={closingCosts => update({ closingCosts })} /><MoneyInput id="renovation" label={tx("Initial renovation", "İlk tadilat gideri")} value={draft.renovation} onValueChange={renovation => update({ renovation })} /><MoneyInput id="owner-costs" label={tx("Annual homeowner costs", "Yıllık ev sahipliği giderleri")} value={draft.ownerCosts} onValueChange={ownerCosts => update({ ownerCosts })} /><MoneyInput id="debt" label={tx("Other monthly debt", "Diğer aylık borç")} value={draft.debt} onValueChange={debt => update({ debt })} /><Field><FieldLabel htmlFor="horizon">{tx("Scenario length (years)", "Senaryo süresi (yıl)")}</FieldLabel><Input id="horizon" type="number" min="1" max="40" value={draft.horizon} onChange={event => update({ horizon: Number(event.target.value) })} /></Field></CollapsibleContent></Collapsible>
+            <Collapsible open={supportOpen} onOpenChange={open => { setSupportOpen(open); if (!open) update({ upfrontSupport: 0, monthlySupport: 0, supportMonths: 0 }) }} className="mt-5"><CollapsibleTrigger asChild><Button variant="ghost" size="sm" className="px-0 text-primary"><Plus className="size-3.5" />{tx("Someone will help with the purchase", "Ev alımında destek alacağım")}</Button></CollapsibleTrigger><CollapsibleContent className="grid gap-4 rounded-[16px] bg-[#f5f7fd] p-5 sm:grid-cols-2"><MoneyInput id="support-upfront" label={tx("Upfront amount", "Peşin destek")} value={draft.upfrontSupport} onValueChange={upfrontSupport => update({ upfrontSupport })} /><MoneyInput id="support-monthly" label={tx("Monthly amount", "Aylık destek")} value={draft.monthlySupport} onValueChange={monthlySupport => update({ monthlySupport })} /><Field className="max-w-[180px]"><FieldLabel htmlFor="support-months">{tx("For how many months?", "Kaç ay boyunca?")}</FieldLabel><Input id="support-months" type="number" min="0" value={draft.supportMonths} onChange={event => update({ supportMonths: Number(event.target.value) })} /></Field></CollapsibleContent></Collapsible>
+          </section>}
+
+          {error && <p role="alert" className="mt-5 text-[12px] font-medium text-destructive">{error}</p>}
+          <div className="mt-10 flex items-center justify-between"><Button type="button" variant="ghost" onClick={() => { setStep(Math.max(0, step - 1)); setError("") }} disabled={step === 0} className="px-0"><ArrowLeft className="size-4" />{tx("Back", "Geri")}</Button><Button type="button" onClick={continueStep} className="gap-2">{step === 2 ? tx("See results", "Sonuçları gör") : tx("Continue", "Devam et")}<ArrowRight className="size-4" /></Button></div>
+        </main>
+        <aside className="hidden lg:block"><div className="sticky top-8 rounded-[20px] bg-[#f1f3ff] px-6 pb-6 pt-5"><p className="text-[11px] font-semibold tracking-[.08em] text-primary uppercase">{tx("At a glance", "Bir bakışta")}</p><h2 className="mt-2 text-[18px] font-semibold tracking-[-.035em]">{tx("Your starting point", "Başlangıç durumun")}</h2><dl className="mt-6 space-y-2">{[[tx("Monthly income", "Aylık gelir"), money(draft.income)], [tx("Current rent", "Güncel kira"), money(draft.rent)], [tx("Other spending", "Diğer giderler"), money(draft.livingCosts)], [tx("Home price", "Ev fiyatı"), money(draft.propertyPrice)], [tx("Savings", "Birikim"), money(draft.savings)]].map(([label, value]) => <div key={label} className="flex justify-between gap-3 rounded-[9px] bg-white/75 px-3 py-2.5 text-[12px]"><dt className="text-ink-soft">{label}</dt><dd className="font-semibold tabular-nums">{value}</dd></div>)}</dl><p className="mt-6 text-[12px] leading-5 text-muted-foreground">{tx("These are assumptions, not market predictions.", "Bunlar piyasa tahmini değil, varsayımlardır.")}</p></div></aside>
+      </div>
+    </div>
+  </div>
+}

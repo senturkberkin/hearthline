@@ -1,0 +1,10 @@
+{
+  "name": "hearthline",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix design-preview run dev",
+    "build": "npm --prefix design-preview run build",
+    "preview": "npm --prefix design-preview run preview",
+    "test": "node --test tests/*.test.*"
+  }
+}
