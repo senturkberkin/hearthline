@@ -21,15 +21,14 @@ export function BrandHeader({ mode = "public" }: { mode?: "public" | "app" }) {
       <nav aria-label="Main navigation" className="hidden items-center gap-7 text-[13px] font-medium text-ink-soft md:flex">
         {mode === "public" ? <><a href={sitePath("/#how-it-works")} className="hover:text-foreground">{tx("How it works", "Nasıl çalışır?")}</a><a href={sitePath("/#methodology")} className="hover:text-foreground">{tx("Methodology", "Yöntem")}</a><a href={sitePath("/privacy/")} className="hover:text-foreground">{tx("Privacy", "Gizlilik")}</a></> : <><a href={sitePath("/")} className="hover:text-foreground">{tx("About the tool", "Araç hakkında")}</a><a href={sitePath("/#methodology")} className="hover:text-foreground">{tx("Methodology", "Yöntem")}</a></>}
         {settings}
-        <a href={sitePath(mode === "public" ? "/#workspace" : "/")} className="rounded-full bg-[#eef1ff] px-4 py-2 font-semibold text-primary hover:bg-[#e2e8ff]">{mode === "public" ? tx("Open planner", "Planlayıcıyı aç") : tx("Back to home", "Ana sayfaya dön")}</a>
+        {mode === "app" && <a href={sitePath("/#workspace")} className="rounded-full bg-[#eef1ff] px-4 py-2 font-semibold text-primary hover:bg-[#e2e8ff]">{tx("Back to planner", "Planlayıcıya dön")}</a>}
       </nav>
       <Sheet>
         <SheetTrigger asChild><Button variant="ghost" size="icon" aria-label={tx("Open navigation", "Menüyü aç")} className="md:hidden"><Menu /></Button></SheetTrigger>
         <SheetContent side="right" className="w-[min(85vw,330px)] bg-card">
           <SheetHeader><SheetTitle className="text-left">{tx("Navigate", "Gezin")}</SheetTitle></SheetHeader>
           <nav aria-label="Mobile navigation" className="grid gap-1 px-4 text-[15px] font-medium">
-            <a className="rounded-lg px-3 py-3 hover:bg-muted" href={sitePath("/")}>{tx("Home", "Ana sayfa")}</a>
-            <a className="rounded-lg px-3 py-3 hover:bg-muted" href={sitePath("/#workspace")}>{tx("Open planner", "Planlayıcıyı aç")}</a>
+            {mode === "app" && <a className="rounded-lg px-3 py-3 hover:bg-muted" href={sitePath("/#workspace")}>{tx("Back to planner", "Planlayıcıya dön")}</a>}
             <a className="rounded-lg px-3 py-3 hover:bg-muted" href={sitePath("/#methodology")}>{tx("Methodology", "Yöntem")}</a>
             <a className="rounded-lg px-3 py-3 hover:bg-muted" href={sitePath("/privacy/")}>{tx("Privacy", "Gizlilik")}</a>
             <a className="rounded-lg px-3 py-3 hover:bg-muted" href={sitePath("/terms/")}>{tx("Terms", "Koşullar")}</a>
@@ -46,7 +45,7 @@ export function PublicFooter() {
   return <footer className="bg-[#f5f7fd]">
     <div className="mx-auto grid max-w-[1240px] gap-9 px-5 py-10 sm:px-8 md:grid-cols-[1fr_auto]">
       <div><Brand /><p className="mt-4 max-w-[350px] text-[13px] leading-5 text-muted-foreground">{tx("A private place to understand a housing decision. Your scenario, not our prediction.", "Konut kararını anlamak için özel bir alan. Senin senaryon, bizim tahminimiz değil.")}</p></div>
-      <div className="flex flex-wrap items-start gap-x-6 gap-y-3 text-[13px] font-medium text-ink-soft"><a href={sitePath("/#methodology")} className="hover:text-primary">{tx("Methodology", "Yöntem")}</a><a href={sitePath("/privacy/")} className="hover:text-primary">{tx("Privacy", "Gizlilik")}</a><a href={sitePath("/terms/")} className="hover:text-primary">{tx("Terms", "Koşullar")}</a><a href={sitePath("/#workspace")} className="inline-flex items-center gap-1 text-primary hover:underline">{tx("Open planner", "Planlayıcıyı aç")} <ArrowRight className="size-3.5" /></a></div>
+      <div className="flex flex-wrap items-start gap-x-6 gap-y-3 text-[13px] font-medium text-ink-soft"><a href={sitePath("/#methodology")} className="hover:text-primary">{tx("Methodology", "Yöntem")}</a><a href={sitePath("/privacy/")} className="hover:text-primary">{tx("Privacy", "Gizlilik")}</a><a href={sitePath("/terms/")} className="hover:text-primary">{tx("Terms", "Koşullar")}</a><a href={sitePath("/#workspace")} className="inline-flex items-center gap-1 text-primary hover:underline">{tx("Back to planner", "Planlayıcıya dön")} <ArrowRight className="size-3.5" /></a></div>
     </div>
     <div className="mx-auto max-w-[1240px] px-5 pb-5 text-[11px] text-muted-foreground sm:px-8">© 2026 Hearthline</div>
   </footer>
