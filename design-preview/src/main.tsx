@@ -8,8 +8,8 @@ import { ProductProvider } from "@/lib/product-context"
 import "./index.css"
 
 function App() {
-  const path = window.location.pathname
-  const page = path === "/setup" || path === "/design/setup" ? <SetupPage /> : path === "/results" || path === "/design/results" ? <ResultsPage /> : <HomePage />
+  const path = window.location.pathname.replace(/\/$/, "")
+  const page = path.endsWith("/setup") ? <SetupPage /> : path.endsWith("/results") ? <ResultsPage /> : <HomePage />
   return <ProductProvider><TooltipProvider>{page}</TooltipProvider></ProductProvider>
 }
 

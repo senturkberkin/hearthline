@@ -10,6 +10,7 @@ import { IncomeHistoryCalculator } from "@/components/product/income-history-cal
 import { MonthPicker } from "@/components/product/month-picker"
 import { useProduct } from "@/lib/product-context"
 import { validateScenario, withPrincipal, type Scenario } from "@/lib/engine"
+import { sitePath } from "@/lib/utils"
 
 export function SetupPage() {
   const { scenario, setScenario, tx, money, percent } = useProduct()
@@ -33,7 +34,7 @@ export function SetupPage() {
     if (problem) { setError(tx("Check the home price, savings and contribution amounts.", "Ev fiyatını, birikimi ve katkı tutarlarını kontrol et.")); return }
     setScenario(next)
     try { sessionStorage.setItem("hearthline.scenario.v1", JSON.stringify(next)) } catch { /* Continue in memory if storage is unavailable. */ }
-    window.location.assign("/results")
+    window.location.assign(sitePath("/results/"))
   }
 
   return <div className="min-h-screen bg-background text-foreground">

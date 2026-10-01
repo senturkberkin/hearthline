@@ -1,3 +1,5 @@
+import { sitePath } from "@/lib/utils"
+
 export type RentReference = { percentage: number; period: string; publishedAt: string; nextPublicationAt: string | null; sourceUrl: string }
 const storageKey = "hearthline.rentReference"
 
@@ -19,7 +21,7 @@ export async function loadRentReference(): Promise<{ data: RentReference | null;
   let cached: RentReference | null = null
   try { cached = validateRentReference(JSON.parse(localStorage.getItem(storageKey) || "null")) } catch { /* No cache. */ }
   try {
-    const response = await fetch("/rent-reference.json", { cache: "no-store" })
+    const response = await fetch(sitePath("/rent-reference.json"), { cache: "no-store" })
     if (!response.ok) throw new Error("Reference unavailable")
     const fresh = validateRentReference(await response.json())
     if (!fresh) throw new Error("Invalid reference")
