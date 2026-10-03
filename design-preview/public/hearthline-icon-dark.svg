@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Hearthline">
+  <defs>
+    <radialGradient id="field" cx="40%" cy="30%" r="85%">
+      <stop stop-color="#3a3a3a"/>
+      <stop offset="1" stop-color="#202020"/>
+    </radialGradient>
+    <linearGradient id="ribbon" x1="22" y1="26" x2="107" y2="103" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff"/>
+      <stop offset=".5" stop-color="#ececec"/>
+      <stop offset="1" stop-color="#bdbdbd"/>
+    </linearGradient>
+    <linearGradient id="ribbon-back" x1="106" y1="30" x2="31" y2="101" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f2f2f2"/>
+      <stop offset="1" stop-color="#a8a8a8"/>
+    </linearGradient>
+  </defs>
+  <circle cx="64" cy="64" r="62" fill="url(#field)"/>
+  <circle cx="64" cy="64" r="61.25" fill="none" stroke="#fff" stroke-opacity=".23" stroke-width="1.5"/>
+  <path d="M28 37h72M28 91h72" fill="none" stroke="#fff" stroke-opacity=".76" stroke-width="7" stroke-linecap="round"/>
+  <path d="M91 37C65 37 73 91 37 91" fill="none" stroke="#000" stroke-opacity=".3" stroke-width="17" stroke-linecap="round" transform="translate(0 2)"/>
+  <path d="M91 37C65 37 73 91 37 91" fill="none" stroke="url(#ribbon-back)" stroke-width="14" stroke-linecap="round"/>
+  <path d="M37 37C63 37 55 91 91 91" fill="none" stroke="#000" stroke-opacity=".24" stroke-width="17" stroke-linecap="round" transform="translate(0 2)"/>
+  <path d="M37 37C63 37 55 91 91 91" fill="none" stroke="url(#ribbon)" stroke-width="14" stroke-linecap="round"/>
+</svg>
