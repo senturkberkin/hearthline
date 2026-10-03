@@ -1,6 +1,7 @@
 import * as React from "react"
-import { ArrowRight, ArrowUpRight, LockKeyhole } from "lucide-react"
-import { buttonVariants } from "@/components/ui/button"
+import { ArrowRight, ArrowUpRight, LockKeyhole, X } from "lucide-react"
+import { Dialog as DialogPrimitive } from "radix-ui"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { BrandHeader, PublicFooter } from "@/components/product/shell"
 import { SetupPage } from "@/pages/setup"
 import { ResultsPage } from "@/pages/results"
@@ -58,24 +59,36 @@ function NotebookStep({ number, title, detail, color }: { number: string; title:
 export function HomePage() {
   const active = useSectionMotion()
   const { tx, money, isExample } = useProduct()
-  const [workspaceView, setWorkspaceView] = React.useState<"setup" | "results">(isExample ? "setup" : "results")
-  const showWorkspace = (view: "setup" | "results") => {
-    setWorkspaceView(view)
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }
+  const [resultsOpen, setResultsOpen] = React.useState(!isExample)
+  const [setupKey, setSetupKey] = React.useState(0)
+  const closeResults = () => setResultsOpen(false)
+  const clearResults = () => { setSetupKey(current => current + 1); closeResults() }
   return <div className="min-h-screen bg-white text-foreground">
     <BrandHeader />
     <main>
       <section id="workspace" aria-label={tx("Rent versus buy planner", "Kira ve ev alma planlayıcısı")} className="scroll-mt-20 bg-background">
-        {workspaceView === "setup" ? <SetupPage embedded onComplete={() => showWorkspace("results")} /> : <ResultsPage embedded onEdit={() => showWorkspace("setup")} onClear={() => showWorkspace("setup")} />}
+        <SetupPage key={setupKey} embedded onComplete={() => setResultsOpen(true)} />
       </section>
+
+      <DialogPrimitive.Root open={resultsOpen} onOpenChange={setResultsOpen}>
+        <DialogPrimitive.Portal>
+          <DialogPrimitive.Overlay className="results-overlay fixed inset-0 z-50 bg-black/55 backdrop-blur-[5px]" />
+          <DialogPrimitive.Content className="results-dialog fixed inset-y-2 left-1/2 z-50 w-[calc(100%-16px)] max-w-[1512px] -translate-x-1/2 overflow-y-auto overscroll-contain rounded-[20px] bg-background text-foreground shadow-[0_30px_100px_-30px_rgba(0,0,0,.45)] ring-1 ring-black/5 outline-none dark:ring-white/15 sm:inset-y-5 sm:w-[calc(100%-40px)] sm:rounded-[26px]" aria-describedby={undefined}>
+            <div className="sticky top-0 z-40 flex min-h-15 items-center justify-between gap-4 rounded-t-[20px] bg-background/95 px-5 shadow-[0_10px_24px_-24px_rgba(0,0,0,.6)] backdrop-blur-md sm:min-h-17 sm:px-8">
+              <DialogPrimitive.Title className="text-[15px] font-semibold tracking-[-.03em] sm:text-[17px]">{tx("Your results", "Sonuçların")}</DialogPrimitive.Title>
+              <DialogPrimitive.Close asChild><Button type="button" variant="ghost" size="icon" className="size-10 rounded-full" aria-label={tx("Close results and return to planner", "Sonuçları kapat ve planlayıcıya dön")}><X className="size-4" /></Button></DialogPrimitive.Close>
+            </div>
+            {resultsOpen && <ResultsPage embedded onEdit={closeResults} onClear={clearResults} onNavigateMethodology={closeResults} />}
+          </DialogPrimitive.Content>
+        </DialogPrimitive.Portal>
+      </DialogPrimitive.Root>
 
       <SectionNav active={active} />
 
       <section id="how-it-works" className="landing-section section-enter notebook-dots px-5 py-22 sm:px-8 lg:py-30"><div className="mx-auto max-w-[1240px]">
         <div className="max-w-[660px]"><span className="rounded-full bg-white px-3 py-1.5 text-[11px] font-semibold text-primary shadow-sm">01 · {tx("The plan", "Plan")}</span><h2 className="mt-6 text-[clamp(2.2rem,4vw,3.8rem)] leading-[1.08] font-semibold tracking-[-.06em]">{tx("Start with what you know.", "Bildiklerinle başla.")}</h2><p className="mt-4 max-w-[500px] text-[15px] text-ink-soft">{tx("Five familiar numbers are enough for a first comparison. Refine the rest when you want to.", "İlk karşılaştırma için bildiğin beş rakam yeterli. Diğerlerini dilediğinde ayrıntılandır.")}</p></div>
         <div className="mt-12 grid gap-4 md:grid-cols-3 md:gap-6"><NotebookStep number="01" title={tx("Your starting point", "Başlangıç durumun")} detail={tx("Income, rent and everyday spending", "Gelir, kira ve günlük giderler")} color="bg-[#eaf1ff]" /><NotebookStep number="02" title={tx("A possible home", "Olası bir ev")} detail={tx("Price, savings and a loan assumption", "Fiyat, birikim ve kredi varsayımı")} color="bg-[#f1f6ff]" /><NotebookStep number="03" title={tx("Two paths", "İki yol")} detail={tx("Cash flow now and over time", "Bugünkü ve gelecekteki nakit akışı")} color="bg-[#edf2ff]" /></div>
-        <a href="#workspace" onClick={() => setWorkspaceView("setup")} className="mt-10 inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-[13px] font-semibold text-primary shadow-sm transition-transform hover:-translate-y-0.5">{tx("See the setup", "Senaryo adımlarını gör")} <ArrowRight className="size-4" /></a>
+        <a href="#workspace" onClick={closeResults} className="mt-10 inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-[13px] font-semibold text-primary shadow-sm transition-transform hover:-translate-y-0.5">{tx("See the setup", "Senaryo adımlarını gör")} <ArrowRight className="size-4" /></a>
       </div></section>
 
       <section id="comparison" className="landing-section section-enter mx-auto max-w-[1120px] px-5 py-17 sm:px-8 lg:py-22">
@@ -99,7 +112,7 @@ export function HomePage() {
       </section>
 
       <section id="privacy" className="landing-section section-enter px-5 py-13 sm:px-8 lg:py-16"><div className="mx-auto max-w-[660px] text-center"><span className="rounded-full bg-[#edf2ff] px-3 py-1.5 text-[11px] font-semibold text-primary">04 · {tx("Privacy", "Gizlilik")}</span><LockKeyhole className="mx-auto mt-6 size-6 text-primary" /><h2 className="mt-3 text-[clamp(2rem,3vw,2.9rem)] font-semibold tracking-[-.055em]">{tx("Private by default.", "Varsayılan olarak gizli.")}</h2><p className="mx-auto mt-3 max-w-[570px] text-[14px] leading-6 text-ink-soft">{tx("Calculations stay in your browser. No account or data upload.", "Hesaplamalar tarayıcında kalır. Hesap açma veya veri yükleme yok.")}</p><a href={sitePath("/privacy/")} className="mt-5 inline-flex items-center gap-1 text-[13px] font-semibold text-primary hover:underline">{tx("Read the privacy notice", "Gizlilik bildirimini oku")} <ArrowUpRight className="size-4" /></a></div></section>
-      <section id="terms" className="mx-auto max-w-[880px] px-5 pb-24 pt-5 text-center sm:px-8"><h2 className="text-[27px] font-semibold tracking-[-.045em]">{tx("See what your numbers say.", "Rakamlarının ne söylediğini gör.")}</h2><a href="#workspace" onClick={() => setWorkspaceView("setup")} className={cn(buttonVariants({ size: "lg" }), "mt-6 gap-2")}>{tx("Build a scenario", "Senaryo oluştur")} <ArrowRight className="size-4" /></a><p className="mt-4 text-[12px] text-muted-foreground">{tx("Educational scenarios, not financial or mortgage advice.", "Eğitim amaçlı senaryolar; finans veya kredi tavsiyesi değil.")}</p></section>
+      <section id="terms" className="mx-auto max-w-[880px] px-5 pb-24 pt-5 text-center sm:px-8"><h2 className="text-[27px] font-semibold tracking-[-.045em]">{tx("See what your numbers say.", "Rakamlarının ne söylediğini gör.")}</h2><a href="#workspace" onClick={closeResults} className={cn(buttonVariants({ size: "lg" }), "mt-6 gap-2")}>{tx("Build a scenario", "Senaryo oluştur")} <ArrowRight className="size-4" /></a><p className="mt-4 text-[12px] text-muted-foreground">{tx("Educational scenarios, not financial or mortgage advice.", "Eğitim amaçlı senaryolar; finans veya kredi tavsiyesi değil.")}</p></section>
     </main>
     <PublicFooter />
   </div>

@@ -29,6 +29,8 @@ export function SetupPage({ embedded = false, onComplete }: { embedded?: boolean
   const headingRef = React.useRef<HTMLHeadingElement>(null)
   const previousStep = React.useRef(step)
 
+  React.useEffect(() => { if (embedded) setDraft(scenario) }, [embedded, scenario])
+
   React.useEffect(() => {
     if (previousStep.current !== step) headingRef.current?.focus({ preventScroll: true })
     previousStep.current = step

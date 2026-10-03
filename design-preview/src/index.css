@@ -158,6 +158,11 @@
 @keyframes step-enter-forward { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: translateX(0); } }
 @keyframes step-enter-back { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: translateX(0); } }
 
+.results-overlay { animation: results-fade-in 180ms ease-out both; }
+.results-dialog { animation: results-enter 220ms cubic-bezier(.22, 1, .36, 1) both; }
+@keyframes results-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes results-enter { from { opacity: 0; transform: translateY(12px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
 .allocation-range {
   appearance: none;
   display: block;
@@ -190,6 +195,7 @@
 @media (prefers-reduced-motion: reduce) {
   .step-switcher__active { transition: none; }
   .step-content--forward, .step-content--back { animation: none; }
+  .results-overlay, .results-dialog { animation: none; }
 }
 
 .landing-section { scroll-margin-top: 7rem; }
