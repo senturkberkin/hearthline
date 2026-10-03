@@ -158,6 +158,35 @@
 @keyframes step-enter-forward { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: translateX(0); } }
 @keyframes step-enter-back { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: translateX(0); } }
 
+.allocation-range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--primary) 0 var(--progress), var(--border) var(--progress) 100%);
+  cursor: pointer;
+}
+.allocation-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 23px;
+  height: 23px;
+  border: 4px solid var(--card);
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary), 0 3px 10px rgb(0 0 0 / .12);
+}
+.allocation-range::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  border: 4px solid var(--card);
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary), 0 3px 10px rgb(0 0 0 / .12);
+}
+.allocation-range:focus-visible { outline: 3px solid var(--ring); outline-offset: 8px; }
+.allocation-range:disabled { cursor: not-allowed; opacity: .45; }
+
 @media (prefers-reduced-motion: reduce) {
   .step-switcher__active { transition: none; }
   .step-content--forward, .step-content--back { animation: none; }
