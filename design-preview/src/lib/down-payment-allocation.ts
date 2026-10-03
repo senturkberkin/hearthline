@@ -13,3 +13,7 @@ export function downPaymentAllocation(scenario: Scenario) {
     belowSuggestedReserve: remaining < suggestedReserve,
   }
 }
+
+export function clampDownPayment(scenario: Scenario) {
+  return Math.min(Math.max(0, Number.isFinite(scenario.downPayment) ? scenario.downPayment : 0), downPaymentAllocation(scenario).limit)
+}

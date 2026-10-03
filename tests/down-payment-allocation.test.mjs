@@ -10,7 +10,7 @@ function loadTs(path) {
   const js = ts.transpileModule(source, {compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;
   return import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`);
 }
-const {downPaymentAllocation} = await loadTs('../design-preview/src/lib/down-payment-allocation.ts');
+const {downPaymentAllocation,clampDownPayment} = await loadTs('../design-preview/src/lib/down-payment-allocation.ts');
 const engine = await loadTs('../design-preview/src/lib/engine.ts');
 const base = {savings:500000,downPayment:350000,propertyPrice:4500000,upfrontSupport:0,rent:28000,livingCosts:22000};
 
@@ -49,4 +49,12 @@ test('A06 allocating more savings reduces the existing engine loan and payment',
   const larger=engine.withPrincipal({...scenario,downPayment:350000});
   assert.equal(larger.principal,smaller.principal-100000);
   assert.ok(engine.calculate(larger).payment < engine.calculate(smaller).payment);
+});
+test('A07 typed down payment cannot exceed savings or fall below zero', () => {
+  assert.equal(clampDownPayment({...base,downPayment:1_000_000_000_000_000}),500000);
+  assert.equal(clampDownPayment({...base,downPayment:-1}),0);
+});
+test('A08 lowering savings or home-price headroom also lowers the down-payment cap', () => {
+  assert.equal(clampDownPayment({...base,savings:100000,downPayment:350000}),100000);
+  assert.equal(clampDownPayment({...base,propertyPrice:300000,upfrontSupport:50000,downPayment:350000}),250000);
 });

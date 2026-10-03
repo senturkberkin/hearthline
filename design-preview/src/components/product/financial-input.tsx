@@ -67,9 +67,11 @@ type FinancialInputProps = {
   invalid?: boolean
   hideLabel?: boolean
   emptyWhenZero?: boolean
+  min?: number
+  max?: number
 }
 
-function FinancialInput({ id, label, value, onValueChange, locale, className, disabled, invalid, hideLabel, emptyWhenZero, decimals, unit }: FinancialInputProps & { decimals: boolean; unit: string }) {
+function FinancialInput({ id, label, value, onValueChange, locale, className, disabled, invalid, hideLabel, emptyWhenZero, min, max, decimals, unit }: FinancialInputProps & { decimals: boolean; unit: string }) {
   const { language } = useProduct()
   locale ??= language === "tr" ? "tr-TR" : "en-US"
   const inputRef = React.useRef<HTMLInputElement>(null)
@@ -105,9 +107,12 @@ function FinancialInput({ id, label, value, onValueChange, locale, className, di
           const next = formatEdit(event.target.value, event.target.selectionStart ?? event.target.value.length, locale, decimals)
           const normalized = normalize(next.formatted, locale, decimals)
           const raw = Number(normalized)
-          pendingCaret.current = next.nextCaret
-          lastValue.current = Number.isFinite(raw) ? raw : 0
-          setText(next.formatted)
+          const finite = Number.isFinite(raw) ? raw : 0
+          const bounded = Math.min(max ?? Infinity, Math.max(min ?? -Infinity, finite))
+          const nextText = bounded === finite ? next.formatted : display(String(bounded), locale, decimals)
+          pendingCaret.current = bounded === finite ? next.nextCaret : nextText.length
+          lastValue.current = bounded
+          setText(nextText)
           onValueChange(lastValue.current)
         }}
         inputMode={decimals ? "decimal" : "numeric"}

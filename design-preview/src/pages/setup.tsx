@@ -9,27 +9,27 @@ import { MoneyInput, PercentInput } from "@/components/product/financial-input"
 import { IncomeHistoryCalculator } from "@/components/product/income-history-calculator"
 import { MonthPicker } from "@/components/product/month-picker"
 import { useProduct } from "@/lib/product-context"
-import { downPaymentAllocation } from "@/lib/down-payment-allocation"
+import { clampDownPayment, downPaymentAllocation } from "@/lib/down-payment-allocation"
 import { validateScenario, withPrincipal, type Scenario } from "@/lib/engine"
 import { sitePath } from "@/lib/utils"
 
 export function SetupPage({ embedded = false, onComplete }: { embedded?: boolean; onComplete?: () => void } = {}) {
   const { scenario, setScenario, tx, money, percent } = useProduct()
-  const [draft, setDraft] = React.useState<Scenario>(scenario)
+  const [draft, setDraft] = React.useState<Scenario>(() => ({ ...scenario, downPayment: clampDownPayment(scenario) }))
   const [step, setStep] = React.useState(0)
   const [direction, setDirection] = React.useState<"forward" | "back">("forward")
   const [nextRent, setNextRent] = React.useState(0)
   const [supportOpen, setSupportOpen] = React.useState(draft.upfrontSupport > 0 || draft.monthlySupport > 0)
   const [error, setError] = React.useState("")
   const steps = [tx("Income", "Gelir"), tx("Rent", "Kira"), tx("Home", "Ev")]
-  const update = (patch: Partial<Scenario>) => setDraft(current => ({ ...current, ...patch }))
+  const update = (patch: Partial<Scenario>) => setDraft(current => { const next = { ...current, ...patch }; return { ...next, downPayment: clampDownPayment(next) } })
   const observedRentRise = draft.rent > 0 && nextRent > 0 ? (nextRent / draft.rent - 1) * 100 : 0
   const allocation = downPaymentAllocation(draft)
   const Content = embedded ? "div" : "main"
   const headingRef = React.useRef<HTMLHeadingElement>(null)
   const previousStep = React.useRef(step)
 
-  React.useEffect(() => { if (embedded) setDraft(scenario) }, [embedded, scenario])
+  React.useEffect(() => { if (embedded) setDraft({ ...scenario, downPayment: clampDownPayment(scenario) }) }, [embedded, scenario])
 
   React.useEffect(() => {
     if (previousStep.current !== step) headingRef.current?.focus({ preventScroll: true })
@@ -87,7 +87,7 @@ export function SetupPage({ embedded = false, onComplete }: { embedded?: boolean
             <div className="mt-7 grid gap-5 sm:grid-cols-2"><MoneyInput id="home-price" label={tx("Home price", "Ev fiyatı")} value={draft.propertyPrice} onValueChange={propertyPrice => update({ propertyPrice })} invalid={Boolean(error && draft.propertyPrice <= 0)} /><MoneyInput id="savings" label={tx("Your savings", "Birikimin")} value={draft.savings} onValueChange={savings => update({ savings })} /></div>
             <div className="mt-6 rounded-[18px] bg-muted p-5 sm:p-6">
               <div className="flex flex-wrap items-start justify-between gap-2"><h3 className="text-[17px] font-semibold tracking-[-.03em]">{tx("How much will you put down?", "Birikiminden peşinata ne kadar ayırırsın?")}</h3><span className="rounded-full bg-card px-3 py-1 text-[12px] font-semibold text-primary tabular-nums">{tx("Savings allocated", "Birikimden ayrılan")} · {percent(allocation.share)}</span></div>
-              <div className="mt-5 max-w-[300px]"><MoneyInput id="down-payment" label={tx("Your down payment", "Kendi peşinatın")} value={draft.downPayment} onValueChange={downPayment => update({ downPayment })} invalid={allocation.outsideLimit} /></div>
+              <div className="mt-5 max-w-[300px]"><MoneyInput id="down-payment" label={tx("Your down payment", "Kendi peşinatın")} value={draft.downPayment} onValueChange={downPayment => update({ downPayment })} min={0} max={allocation.limit} invalid={allocation.outsideLimit} /></div>
               <input type="range" min={0} max={allocation.limit} step={1} value={Math.min(Math.max(0, draft.downPayment), allocation.limit)} onChange={event => update({ downPayment: Number(event.target.value) })} disabled={allocation.limit === 0} aria-label={tx("Savings used for down payment", "Peşinata ayrılan birikim")} aria-valuetext={money(Math.min(Math.max(0, draft.downPayment), allocation.limit))} className="allocation-range mt-6" style={{ "--progress": `${allocation.limit > 0 ? Math.min(100, Math.max(0, draft.downPayment / allocation.limit * 100)) : 0}%` } as React.CSSProperties} />
               <div className="mt-2 flex justify-between text-[11px] text-muted-foreground tabular-nums"><span>{money(0)}</span><span>{money(allocation.limit)}</span></div>
               <div className="mt-6 flex flex-wrap justify-between gap-x-8 gap-y-4"><div><span className="block text-[12px] text-muted-foreground">{tx("Savings left after down payment", "Peşinat sonrası kalan birikim")}</span><strong className={`mt-1 block text-[20px] font-semibold tabular-nums ${allocation.remaining < 0 ? "text-destructive" : ""}`}>{money(allocation.remaining)}</strong></div><div><span className="block text-[12px] text-muted-foreground">{tx("Three months of expenses", "Üç aylık gider karşılığı")}</span><strong className="mt-1 block text-[20px] font-semibold tabular-nums">{money(allocation.suggestedReserve)}</strong></div></div>
