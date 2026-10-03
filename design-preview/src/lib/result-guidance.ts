@@ -30,6 +30,13 @@ export function deriveResultGuidance(scenario: Scenario, projection: Projection)
   const lowerPrice = withPrincipal({ ...scenario, propertyPrice: scenario.propertyPrice * .9 })
   const lowerPriceMonthlyGain = lowerPrice.downPayment + lowerPrice.upfrontSupport <= lowerPrice.propertyPrice
     ? calculate(lowerPrice).rows[0].buySurplus - first.buySurplus : null
+  const cashAfterPurchase = scenario.savings - projection.initialBuyCash
+  const extraDownPayment = Math.floor(Math.max(0, Math.min(scenario.principal, cashAfterPurchase - scenario.reserve)))
+  const moreDown = extraDownPayment > 0 ? withPrincipal({ ...scenario, downPayment: scenario.downPayment + extraDownPayment }) : null
+  const moreDownCash = moreDown ? calculate(moreDown).rows[0].buySurplus : null
+  const upfrontSupportMonthlyGain = scenario.upfrontSupport > 0
+    ? calculate(withPrincipal({ ...scenario, upfrontSupport: 0 })).payment - projection.payment
+    : 0
 
   return {
     code, trend, fundingGap, firstDeficitMonth: firstDeficit ? firstDeficit.m + 1 : null,
@@ -42,6 +49,14 @@ export function deriveResultGuidance(scenario: Scenario, projection: Projection)
     lowestBuyCash: Math.min(...rows.map(row => row.buySurplus)),
     lowestLiquid: Math.min(projection.buyLiquid, scenario.savings - projection.initialBuyCash, ...rows.map(row => row.buyLiquid)),
     lowerPriceMonthlyGain,
+    downPaymentTest: moreDownCash === null ? null : {
+      extra: extraDownPayment,
+      monthOneCash: moreDownCash,
+      monthlyGain: moreDownCash - first.buySurplus,
+      cashAfterPurchase: cashAfterPurchase - extraDownPayment,
+    },
+    cashAfterPurchase,
+    upfrontSupportMonthlyGain,
     usesUpfrontSupport: scenario.upfrontSupport > 0,
     usesMonthlySupport: scenario.monthlySupport > 0 && scenario.supportMonths > 0,
     missingOwnerCosts: scenario.ownerCosts === 0,

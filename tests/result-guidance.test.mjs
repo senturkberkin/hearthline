@@ -98,3 +98,23 @@ test('G17 price lever does not use an impossible down-payment combination', () =
   const {guidance} = result({propertyPrice:1000000,downPayment:950000,savings:1000000});
   assert.equal(guidance.lowerPriceMonthlyGain,null);
 });
+test('G18 one-time family help and spare savings produce a quantified down-payment test', () => {
+  const {scenario,guidance} = result({income:75000,savings:800000,downPayment:300000,upfrontSupport:250000});
+  assert.equal(guidance.code,'monthly-shortfall');
+  assert.equal(guidance.downPaymentTest.extra,350000);
+  assert.equal(guidance.downPaymentTest.cashAfterPurchase,scenario.reserve);
+  assert.ok(guidance.downPaymentTest.monthlyGain > 0);
+  assert.ok(guidance.upfrontSupportMonthlyGain > 0);
+});
+test('G19 no down-payment test is proposed when it would consume the chosen reserve', () => {
+  const {guidance} = result({income:75000,upfrontSupport:250000});
+  assert.equal(guidance.downPaymentTest,null);
+  assert.equal(guidance.cashAfterPurchase,100000);
+});
+test('G20 a down-payment test can change the conclusion when it closes the monthly gap', () => {
+  const {scenario,guidance} = result({income:95000,savings:800000,downPayment:300000,upfrontSupport:250000});
+  assert.equal(guidance.code,'monthly-shortfall');
+  const tried=engine.withPrincipal({...scenario,downPayment:scenario.downPayment+guidance.downPaymentTest.extra});
+  assert.ok(guidance.downPaymentTest.monthOneCash >= 0);
+  assert.equal(deriveResultGuidance(tried,engine.calculate(tried)).code,'cash-positive');
+});

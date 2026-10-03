@@ -10,6 +10,7 @@ import { CashFlowTimeline } from "@/components/product/cash-flow-timeline"
 import { ScenarioControlRail } from "@/components/product/scenario-control-rail"
 import { KeyMilestone } from "@/components/product/key-milestone"
 import { ResultGuidance } from "@/components/product/result-guidance"
+import { deriveResultGuidance } from "@/lib/result-guidance"
 import { useProduct } from "@/lib/product-context"
 import { sitePath } from "@/lib/utils"
 import { annualize, calculate, firstMonth, independentMonth, validateScenario, withPrincipal, type Projection, type Scenario } from "@/lib/engine"
@@ -31,10 +32,21 @@ function AnnualTable({ projection }: { projection: Projection }) {
 
 function BiggestLevers({ scenario, projection, onChange }: { scenario: Scenario; projection: Projection; onChange: (next: Scenario) => void }) {
   const { tx, money } = useProduct()
+  const guidance = deriveResultGuidance(scenario, projection)
+  const down = guidance.downPaymentTest
   const cheaper = withPrincipal({ ...scenario, propertyPrice: Math.round(scenario.propertyPrice * .9) })
   const canTryCheaper = cheaper.downPayment + cheaper.upfrontSupport <= cheaper.propertyPrice
   const improvement = canTryCheaper ? calculate(cheaper).rows[0].buySurplus - projection.rows[0].buySurplus : null
-  return <section aria-labelledby="levers-title"><h2 id="levers-title" className="text-[19px] font-semibold tracking-[-.03em]">{tx("Assumptions to test", "Denenecek varsayımlar")}</h2><div className="mt-4 grid gap-3"><div className="flex flex-wrap items-center justify-between gap-3 rounded-[14px] bg-[#edf2ff] p-4 dark:bg-[#24282e]"><div><strong className="text-[13px] font-semibold">{tx("Home price −10%", "Ev fiyatı −%10")}</strong><p className="mt-1 text-[12px] text-ink-soft">{money(scenario.propertyPrice)} → {money(cheaper.propertyPrice)}</p></div><div className="flex items-center gap-3"><span className="text-[13px] font-semibold tabular-nums text-primary">{improvement === null ? tx("Reduce the down payment first", "Önce peşinatı azalt") : <>+{money(improvement)} / {tx("month", "ay")}</>}</span><Button size="sm" variant="outline" disabled={!canTryCheaper} onClick={() => onChange(cheaper)}>{tx("Try it", "Dene")}</Button></div></div><div className="rounded-[14px] bg-[#f2f4f8] p-4 dark:bg-[#24282e]"><strong className="text-[13px] font-semibold">{tx("Your down payment", "Kendi peşinatın")}</strong><p className="mt-1 text-[12px] text-ink-soft">{tx("More down lowers the loan but leaves less cash available. Check both effects.", "Peşinatı artırmak krediyi azaltır, ancak eldeki nakdi de düşürür. İki etkiyi birlikte kontrol et.")}</p></div><div className="rounded-[14px] bg-[#eaf0ff] p-4 dark:bg-[#24282e]"><strong className="text-[13px] font-semibold">{tx("Your loan offer", "Kredi teklifin")}</strong><p className="mt-1 text-[12px] text-ink-soft">{tx("Compare actual rates before relying on the result.", "Sonuca güvenmeden önce gerçek faiz tekliflerini karşılaştır.")}</p></div></div></section>
+  return <section aria-labelledby="levers-title">
+    <h2 id="levers-title" className="text-[19px] font-semibold tracking-[-.03em]">{tx("What to test in this scenario", "Bu senaryoda neyi denemeli?")}</h2>
+    <div className="mt-4 grid gap-3">
+      {down ? <div className="flex flex-wrap items-center justify-between gap-4 rounded-[14px] bg-[#edf2ff] p-4 dark:bg-[#24282e]">
+        <div><strong className="text-[13px] font-semibold">{tx(`Down payment +${money(down.extra)}`, `Peşinat +${money(down.extra)}`)}</strong><p className="mt-1 text-[12px] text-ink-soft">{tx(`${money(down.monthlyGain)} more each month · ${money(down.cashAfterPurchase)} remains after purchase`, `Ayda ${money(down.monthlyGain)} daha fazla kalır · alım sonrası ${money(down.cashAfterPurchase)} birikim kalır`)}</p></div>
+        <Button size="sm" variant="outline" onClick={() => onChange(withPrincipal({ ...scenario, downPayment: scenario.downPayment + down.extra }))}>{tx("Try it", "Dene")}</Button>
+      </div> : guidance.code !== "funding-gap" && scenario.reserve > 0 && guidance.cashAfterPurchase <= scenario.reserve ? <div className="rounded-[14px] bg-[#f2f4f8] p-4 dark:bg-[#24282e]"><strong className="text-[13px] font-semibold">{tx("Down-payment limit", "Peşinat sınırı")}</strong><p className="mt-1 text-[12px] text-ink-soft">{tx(`More down would cut into your chosen ${money(scenario.reserve)} reserve.`, `Peşinatı artırmak ayırdığın ${money(scenario.reserve)} birikimi azaltır.`)}</p></div> : null}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[14px] bg-[#f2f4f8] p-4 dark:bg-[#24282e]"><div><strong className="text-[13px] font-semibold">{tx("Home price −10%", "Ev fiyatı −%10")}</strong><p className="mt-1 text-[12px] text-ink-soft">{money(scenario.propertyPrice)} → {money(cheaper.propertyPrice)}</p></div><div className="flex items-center gap-3"><span className="text-[13px] font-semibold tabular-nums text-primary">{improvement === null ? tx("Reduce the down payment first", "Önce peşinatı azalt") : <>+{money(improvement)} / {tx("month", "ay")}</>}</span><Button size="sm" variant="outline" disabled={!canTryCheaper} onClick={() => onChange(cheaper)}>{tx("Try it", "Dene")}</Button></div></div>
+    </div>
+  </section>
 }
 
 function ResultActions({ onEdit, onClear }: { onEdit?: () => void; onClear?: () => void }) {
