@@ -39,7 +39,7 @@ export function CashFlowTimeline({ variant = "current", projection, compact = fa
   const [mode, setMode] = React.useState<Mode>("cash")
   const data = React.useMemo(() => projection ? liveSeries(projection) : previewSeries(variant), [projection, variant])
   const current = chartModes[mode]
-  const title = mode === "cash" ? tx("Monthly cash left", "Aylık elde kalan") : mode === "housing" ? tx("Monthly housing cost", "Aylık konut gideri") : tx("Housing share of income", "Konut giderinin gelire oranı")
+  const title = mode === "cash" ? tx("Monthly cash left over time", "Aylık elde kalan · yıllara göre") : mode === "housing" ? tx("Monthly housing cost over time", "Aylık konut gideri · yıllara göre") : tx("Housing share of income over time", "Konut giderinin gelire oranı · yıllara göre")
   const chartHelp = compact
     ? tx("In this fictional example, each point shows the average monthly cash left in that year after housing, living costs and debt. The dashed line is zero cash left.", "Bu kurgusal örnekte her nokta, o yıl konut, yaşam giderleri ve borçlar sonrası ayda ortalama kalan nakdi gösterir. Kesikli çizgi sıfır noktasıdır.")
     : mode === "cash"
@@ -54,8 +54,7 @@ export function CashFlowTimeline({ variant = "current", projection, compact = fa
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div className="flex items-center gap-2">
         <div>
-        {!compact && <p className="text-[11px] font-semibold tracking-[.08em] text-muted-foreground uppercase">{tx("Over time", "Zaman içinde")}</p>}
-        <h2 className={`font-semibold tracking-[-.03em] ${compact ? "text-[14px]" : "mt-1 text-[19px]"}`}>{title}</h2>
+        <h2 className={`font-semibold tracking-[-.03em] ${compact ? "text-[14px]" : "text-[19px]"}`}>{title}</h2>
         </div>
         <Popover><PopoverTrigger asChild><button type="button" aria-label={`${title}: ${tx("how to read this chart", "grafik nasıl okunur")}`} className="rounded-md p-1 text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"><Info className="size-3.5" /></button></PopoverTrigger><PopoverContent align="start" className="max-w-[290px] p-4 text-[12px] leading-5">{chartHelp}</PopoverContent></Popover>
       </div>

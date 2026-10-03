@@ -26,8 +26,7 @@ export function RentBuyComparison({ variant = "current", projection, compact = f
     <div className="grid grid-cols-2 gap-2 px-2 pb-2">
       {cells.map((cell, index) => <div key={cell.name} className={`min-w-0 rounded-[13px] px-3 py-4 sm:px-5 sm:py-5 ${index === 0 ? "bg-[#edf2ff]" : "bg-[#f2f0fc]"}`}>
         <div className="flex items-center gap-2 text-[12px] font-semibold text-ink-soft"><span className={`size-2 rounded-full ${cell.marker}`} />{cell.name}</div>
-        <p className="mt-5 text-[11px] text-muted-foreground">{tx("Cash left", "Elde kalan")}</p>
-        <strong className={`mt-1 block truncate text-[clamp(1.48rem,3vw,2.65rem)] leading-none font-semibold tracking-[-.06em] tabular-nums ${cell.cash < 0 ? "text-destructive" : "text-foreground"}`} title={money(cell.cash)}>{money(cell.cash)}</strong>
+        <strong className={`mt-5 block truncate text-[clamp(1.48rem,3vw,2.65rem)] leading-none font-semibold tracking-[-.06em] tabular-nums ${cell.cash < 0 ? "text-destructive" : "text-foreground"}`} title={money(cell.cash)}>{money(cell.cash)}</strong>
         {!compact && <div className="mt-5 space-y-2 text-[12px] tabular-nums">
           <div className="flex justify-between gap-3"><span className="text-muted-foreground">{tx("Housing", "Konut")}</span><strong className="font-semibold">{money(cell.housing)}</strong></div>
           <div className="flex justify-between gap-3"><span className="text-muted-foreground">{tx("Of income", "Gelire oranı")}</span><strong className="font-semibold">{cell.share}</strong></div>

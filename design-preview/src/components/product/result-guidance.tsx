@@ -51,8 +51,7 @@ export function ResultGuidance({ scenario, projection, headingId = "result-guida
     : tx("Test a lower price or a verified loan offer while keeping your reserve.", "Ayırdığın birikimi koruyarak daha düşük fiyat veya gerçek kredi teklifi dene.")
 
   return <section aria-labelledby={headingId} className="mb-6">
-    <p className="text-[11px] font-semibold tracking-[.1em] text-primary uppercase">{tx("Your scenario", "Senaryon")}</p>
-    <h1 id={headingId} className="mt-2 max-w-[760px] text-[clamp(2rem,4vw,3.2rem)] leading-[1.06] font-semibold tracking-[-.065em]">{headline}</h1>
+    <h1 id={headingId} className="max-w-[760px] text-[clamp(2rem,4vw,3.2rem)] leading-[1.06] font-semibold tracking-[-.065em]">{headline}</h1>
     <p className="mt-3 text-[14px] text-ink-soft">{lead}</p>
     <div className="mt-5 grid gap-2 sm:grid-cols-2">
       <div className="rounded-[13px] bg-[#edf2ff] p-4 dark:bg-[#24282e]"><p className="text-[11px] font-semibold text-muted-foreground">{tx("Over time", "Zaman içinde")}</p><p className="mt-1 text-[13px] font-medium leading-5">{budgetPath ?? path}</p></div>
@@ -61,7 +60,6 @@ export function ResultGuidance({ scenario, projection, headingId = "result-guida
     <details className="mt-3 rounded-[12px] bg-card px-4 py-3 text-[12px] text-ink-soft"><summary className="cursor-pointer font-semibold text-foreground">{tx("Why this result?", "Bu sonuç neden çıktı?")}</summary><div className="mt-3 space-y-2 leading-5">
       <p>{tx("The comparison uses your income, rent, living costs, debts, mortgage and support assumptions. It describes cash flow, not which choice builds more wealth.", "Karşılaştırma gelir, kira, yaşam gideri, borç, kredi ve destek varsayımlarını kullanır. Nakit akışını anlatır; hangi seçeneğin daha fazla servet oluşturduğunu söylemez.")}</p>
       {budgetPath && <p>{path}</p>}
-      {result.firstDeficitMonth && <p>{tx(`Buying has a negative monthly balance from ${month(result.firstDeficitMonth)}.`, `Ev alımında ${month(result.firstDeficitMonth)} itibarıyla aylık bütçe eksiye düşüyor.`)}</p>}
       {result.usesUpfrontSupport && <p>{tx(`The loan amount includes ${money(scenario.upfrontSupport)} of one-time outside support. A positive later balance does not make the purchase independent of that help.`, `Kredi tutarı ${money(scenario.upfrontSupport)} tek seferlik dış desteği içeriyor. Sonraki aylarda artıda olmak, alımı bu destekten bağımsız kılmaz.`)}</p>}
       {result.usesMonthlySupport && <p>{tx(`Monthly support of ${money(scenario.monthlySupport)} is included for ${scenario.supportMonths} months.`, `${scenario.supportMonths} ay boyunca ${money(scenario.monthlySupport)} aylık destek dahil.`)}</p>}
       {(result.missingOwnerCosts || result.missingBuyingCosts) && <p>{tx("Before deciding, check omitted ownership and purchase costs against real quotes; zero entries make this result optimistic.", "Karar vermeden önce sıfır bırakılan ev sahipliği ve alım giderlerini gerçek tekliflerle kontrol et; sıfır girişler sonucu iyimser gösterebilir.")}</p>}
