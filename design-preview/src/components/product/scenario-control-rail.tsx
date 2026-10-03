@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { MoneyInput, PercentInput } from "@/components/product/financial-input"
+import { SupportInputs } from "@/components/product/support-inputs"
 import { useProduct } from "@/lib/product-context"
 import { clampDownPayment, downPaymentAllocation } from "@/lib/down-payment-allocation"
 import { loadRentReference, type RentReference } from "@/lib/rent-reference"
@@ -26,7 +27,6 @@ function OfficialRentReference({ onUse }: { onUse: (rate: number) => void }) {
 
 export function ScenarioControlRail({ scenario, onChange, onReset, className = "" }: { scenario: Scenario; onChange: (next: Scenario) => void; onReset: () => void; className?: string }) {
   const { tx, money } = useProduct()
-  const [supportOpen, setSupportOpen] = React.useState(scenario.upfrontSupport > 0 || scenario.monthlySupport > 0)
   const update = (patch: Partial<Scenario>) => { const next = { ...scenario, ...patch }; onChange(withPrincipal({ ...next, downPayment: clampDownPayment(next) })) }
   const downPaymentLimit = downPaymentAllocation(scenario).limit
   const fundingGap = Math.max(0, scenario.downPayment + scenario.closingCosts + scenario.renovation - scenario.savings)
@@ -41,7 +41,7 @@ export function ScenarioControlRail({ scenario, onChange, onReset, className = "
       <AssumptionGroup title={tx("Loan", "Kredi")}><PercentInput id="adjust-rate" label={tx("Monthly rate", "Aylık faiz")} value={scenario.rate} onValueChange={rate => update({ rate })} /><Field><FieldLabel htmlFor="adjust-term" className="text-[12px] font-semibold text-ink-soft">{tx("Term (years)", "Vade (yıl)")}</FieldLabel><Input id="adjust-term" type="number" min="1" max="40" value={scenario.termYears} onChange={event => update({ termYears: Number(event.target.value) })} /></Field></AssumptionGroup>
     </div>
     <div className="mt-2"><OfficialRentReference onUse={rentGrowth => update({ rentGrowth })} /></div>
-    <Collapsible open={supportOpen} onOpenChange={open => { setSupportOpen(open); if (!open) update({ upfrontSupport: 0, monthlySupport: 0, supportMonths: 0 }) }} className="mt-3"><CollapsibleTrigger asChild><Button variant="ghost" size="sm" className="w-full justify-between px-1 text-primary">{tx("Family support (optional)", "Aile desteği (isteğe bağlı)")} <ChevronDown className="size-3.5" /></Button></CollapsibleTrigger><CollapsibleContent className="space-y-3 rounded-[12px] bg-[#f7f8fd] p-4"><MoneyInput id="adjust-support-upfront" label={tx("Upfront", "Peşin")} value={scenario.upfrontSupport} onValueChange={upfrontSupport => update({ upfrontSupport })} /><MoneyInput id="adjust-support-monthly" label={tx("Per month", "Aylık")} value={scenario.monthlySupport} onValueChange={monthlySupport => update({ monthlySupport })} /><Field><FieldLabel htmlFor="adjust-support-months">{tx("For how many months?", "Kaç ay boyunca?")}</FieldLabel><Input id="adjust-support-months" type="number" min="0" value={scenario.supportMonths} onChange={event => update({ supportMonths: Number(event.target.value) })} /></Field></CollapsibleContent></Collapsible>
+    <SupportInputs scenario={scenario} update={update} compact />
     <Collapsible className="mt-2"><CollapsibleTrigger asChild><Button variant="ghost" size="sm" className="w-full justify-between px-1 text-primary">{tx("Advanced assumptions", "İleri varsayımlar")} <ChevronDown className="size-3.5" /></Button></CollapsibleTrigger><CollapsibleContent className="space-y-3 rounded-[12px] bg-[#f7f8fd] p-4"><MoneyInput id="adjust-debt" label={tx("Other debt / month", "Aylık diğer borç")} value={scenario.debt} onValueChange={debt => update({ debt })} /><MoneyInput id="adjust-owner" label={tx("Owner costs / year", "Yıllık ev gideri")} value={scenario.ownerCosts} onValueChange={ownerCosts => update({ ownerCosts })} /></CollapsibleContent></Collapsible>
     <div className="mt-4 flex justify-end"><Button variant="ghost" size="sm" className="px-1 text-primary" onClick={onReset}><RotateCcw className="size-3.5" />{tx("Reset", "Sıfırla")}</Button></div>
   </aside>

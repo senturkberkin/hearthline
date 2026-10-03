@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ArrowLeft, ArrowRight, ChevronDown, Plus, ShieldCheck } from "lucide-react"
+import { ArrowLeft, ArrowRight, ChevronDown, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldLabel } from "@/components/ui/field"
@@ -8,6 +8,7 @@ import { BrandHeader } from "@/components/product/shell"
 import { MoneyInput, PercentInput } from "@/components/product/financial-input"
 import { IncomeHistoryCalculator } from "@/components/product/income-history-calculator"
 import { MonthPicker } from "@/components/product/month-picker"
+import { SupportInputs } from "@/components/product/support-inputs"
 import { useProduct } from "@/lib/product-context"
 import { clampDownPayment, downPaymentAllocation } from "@/lib/down-payment-allocation"
 import { validateScenario, withPrincipal, type Scenario } from "@/lib/engine"
@@ -19,7 +20,6 @@ export function SetupPage({ embedded = false, onComplete }: { embedded?: boolean
   const [step, setStep] = React.useState(0)
   const [direction, setDirection] = React.useState<"forward" | "back">("forward")
   const [nextRent, setNextRent] = React.useState(0)
-  const [supportOpen, setSupportOpen] = React.useState(draft.upfrontSupport > 0 || draft.monthlySupport > 0)
   const [error, setError] = React.useState("")
   const steps = [tx("Income", "Gelir"), tx("Rent", "Kira"), tx("Home", "Ev")]
   const update = (patch: Partial<Scenario>) => setDraft(current => { const next = { ...current, ...patch }; return { ...next, downPayment: clampDownPayment(next) } })
@@ -48,7 +48,7 @@ export function SetupPage({ embedded = false, onComplete }: { embedded?: boolean
     if (step === 0 && draft.income <= 0) return setError(tx("Enter your monthly take-home pay.", "Aylık net gelirini gir."))
     if (step === 1 && draft.rent <= 0) return setError(tx("Enter your current rent.", "Güncel kiranı gir."))
     if (step < 2) { moveToStep(step + 1); return }
-    const next = withPrincipal({ ...draft, upfrontSupport: supportOpen ? draft.upfrontSupport : 0, monthlySupport: supportOpen ? draft.monthlySupport : 0, supportMonths: supportOpen ? draft.supportMonths : 0 })
+    const next = withPrincipal(draft)
     const problem = validateScenario(next)
     if (problem) { setError(tx("Check the home price, savings and contribution amounts.", "Ev fiyatını, birikimi ve katkı tutarlarını kontrol et.")); return }
     setScenario(next)
@@ -94,7 +94,7 @@ export function SetupPage({ embedded = false, onComplete }: { embedded?: boolean
               {allocation.outsideLimit ? <p role="alert" className="mt-4 text-[12px] font-medium text-destructive">{tx("Choose a down payment between zero and the available amount.", "Peşinatı sıfır ile kullanılabilir tutar arasında seç.")}</p> : allocation.belowSuggestedReserve && <p className="mt-4 text-[12px] font-medium text-ink-soft">{tx("Less than three months of expenses would remain.", "Üç aylık gider karşılığından daha az birikim kalır.")}</p>}
             </div>
             <Collapsible className="mt-5"><CollapsibleTrigger asChild><Button variant="ghost" size="sm" className="px-0 text-primary">{tx("Loan and advanced assumptions", "Kredi ve diğer varsayımlar")} <ChevronDown className="size-3.5" /></Button></CollapsibleTrigger><CollapsibleContent className="grid gap-5 rounded-[16px] bg-[#f5f7fd] p-5 sm:grid-cols-2"><PercentInput id="rate" label={tx("Monthly interest rate", "Aylık faiz oranı")} value={draft.rate} onValueChange={rate => update({ rate })} /><Field><FieldLabel htmlFor="loan-term">{tx("Loan term (years)", "Kredi vadesi (yıl)")}</FieldLabel><Input id="loan-term" type="number" min="1" max="40" value={draft.termYears} onChange={event => update({ termYears: Number(event.target.value) })} /></Field><MoneyInput id="reserve" label={tx("Cash reserve", "Acil durum birikimi")} value={draft.reserve} onValueChange={reserve => update({ reserve })} /><MoneyInput id="closing-costs" label={tx("Buying costs", "Satın alma giderleri")} value={draft.closingCosts} onValueChange={closingCosts => update({ closingCosts })} /><MoneyInput id="renovation" label={tx("Initial renovation", "İlk tadilat gideri")} value={draft.renovation} onValueChange={renovation => update({ renovation })} /><MoneyInput id="owner-costs" label={tx("Annual homeowner costs", "Yıllık ev sahipliği giderleri")} value={draft.ownerCosts} onValueChange={ownerCosts => update({ ownerCosts })} /><MoneyInput id="debt" label={tx("Other monthly debt", "Diğer aylık borç")} value={draft.debt} onValueChange={debt => update({ debt })} /><Field><FieldLabel htmlFor="horizon">{tx("Scenario length (years)", "Senaryo süresi (yıl)")}</FieldLabel><Input id="horizon" type="number" min="1" max="40" value={draft.horizon} onChange={event => update({ horizon: Number(event.target.value) })} /></Field></CollapsibleContent></Collapsible>
-            <Collapsible open={supportOpen} onOpenChange={open => { setSupportOpen(open); if (!open) update({ upfrontSupport: 0, monthlySupport: 0, supportMonths: 0 }) }} className="mt-5"><CollapsibleTrigger asChild><Button variant="ghost" size="sm" className="px-0 text-primary"><Plus className="size-3.5" />{tx("Someone will help with the purchase", "Ev alımında destek alacağım")}</Button></CollapsibleTrigger><CollapsibleContent className="grid gap-4 rounded-[16px] bg-[#f5f7fd] p-5 sm:grid-cols-2"><MoneyInput id="support-upfront" label={tx("Upfront amount", "Peşin destek")} value={draft.upfrontSupport} onValueChange={upfrontSupport => update({ upfrontSupport })} /><MoneyInput id="support-monthly" label={tx("Monthly amount", "Aylık destek")} value={draft.monthlySupport} onValueChange={monthlySupport => update({ monthlySupport })} /><Field className="max-w-[180px]"><FieldLabel htmlFor="support-months">{tx("For how many months?", "Kaç ay boyunca?")}</FieldLabel><Input id="support-months" type="number" min="0" value={draft.supportMonths} onChange={event => update({ supportMonths: Number(event.target.value) })} /></Field></CollapsibleContent></Collapsible>
+            <SupportInputs scenario={draft} update={update} />
           </section>}
           </div>
 

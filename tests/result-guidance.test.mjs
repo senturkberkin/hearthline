@@ -25,7 +25,7 @@ test('G01 upfront funding gap outranks monthly cash flow', () => {
   assert.equal(guidance.fundingGap,400000);
 });
 test('G02 negative month-one buying cash is a monthly shortfall', () => {
-  const {guidance} = result({income:75000});
+  const {guidance} = result({income:95000});
   assert.equal(guidance.code,'monthly-shortfall');
   assert.equal(guidance.firstDeficitMonth,1);
 });
@@ -81,7 +81,7 @@ test('G13 price lever changes the modeled first-month cash in the right directio
   assert.ok(guidance.lowerPriceMonthlyGain > 0);
 });
 test('G14 both paths in deficit are not framed as a buy-only issue', () => {
-  const {guidance} = result({income:30000});
+  const {guidance} = result({income:30000,propertyPrice:1000000});
   assert.equal(guidance.code,'both-shortfall');
 });
 test('G15 detects when renting gains a sustained monthly lead', () => {
@@ -100,7 +100,7 @@ test('G17 price lever does not use an impossible down-payment combination', () =
 });
 test('G18 one-time family help and spare savings produce a quantified down-payment test', () => {
   const {scenario,guidance} = result({income:75000,savings:800000,downPayment:300000,upfrontSupport:250000});
-  assert.equal(guidance.code,'monthly-shortfall');
+  assert.equal(guidance.code,'payment-exceeds-income');
   assert.equal(guidance.downPaymentTest.extra,350000);
   assert.equal(guidance.downPaymentTest.cashAfterPurchase,scenario.reserve);
   assert.ok(guidance.downPaymentTest.monthlyGain > 0);
@@ -117,4 +117,34 @@ test('G20 a down-payment test can change the conclusion when it closes the month
   const tried=engine.withPrincipal({...scenario,downPayment:scenario.downPayment+guidance.downPaymentTest.extra});
   assert.ok(guidance.downPaymentTest.monthOneCash >= 0);
   assert.equal(deriveResultGuidance(tried,engine.calculate(tried)).code,'cash-positive');
+});
+test('G21 mortgage payment above income has a distinct result, even when renting is also short', () => {
+  const {scenario,guidance} = result({income:40000,propertyPrice:9000000});
+  const projection=engine.calculate(scenario);
+  assert.equal(guidance.code,'payment-exceeds-income');
+  assert.ok(guidance.paymentGap > 0);
+  assert.equal(guidance.paymentGap,projection.rows[0].payment-projection.rows[0].income);
+  assert.equal(guidance.recoveryMonth,null);
+});
+test('G22 exact income/payment boundary is not falsely called payment-exceeds-income', () => {
+  const {scenario}=result({livingCosts:0});
+  const payment=engine.calculate(scenario).payment;
+  const exact=engine.withPrincipal({...scenario,income:payment});
+  const above=engine.withPrincipal({...scenario,income:payment-0.01});
+  assert.notEqual(deriveResultGuidance(exact,engine.calculate(exact)).code,'payment-exceeds-income');
+  assert.equal(deriveResultGuidance(above,engine.calculate(above)).code,'payment-exceeds-income');
+});
+test('G23 monthly support defaults to loan term and is capped at the instalment', () => {
+  const {scenario}=result({propertyPrice:1000000,monthlySupport:1000000,supportMonths:0,termYears:2,horizon:3});
+  const projection=engine.calculate(scenario);
+  assert.equal(engine.effectiveSupportMonths(scenario),24);
+  assert.equal(projection.rows[0].support,projection.rows[0].payment);
+  assert.equal(projection.rows[23].support,projection.rows[23].payment);
+  assert.equal(projection.rows[24].support,0);
+});
+test('G24 earlier end month is an exception; support disappears at its boundary', () => {
+  const {scenario}=result({propertyPrice:1000000,monthlySupport:10000,supportMonths:6});
+  const projection=engine.calculate(scenario);
+  assert.equal(projection.rows[5].support,10000);
+  assert.equal(projection.rows[6].support,0);
 });

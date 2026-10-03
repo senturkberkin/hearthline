@@ -9,10 +9,13 @@ export function ResultGuidance({ scenario, projection, headingId = "result-guida
 
   const headline = {
     "funding-gap": tx(`The purchase needs ${money(result.fundingGap)} more up front.`, `Alım için ${money(result.fundingGap)} daha gerekiyor.`),
+    "payment-exceeds-income": result.usesMonthlySupport
+      ? tx(`The mortgage payment exceeds monthly income and support by ${money(result.paymentGap)}.`, `Kredi taksiti aylık gelir ve desteği ${money(result.paymentGap)} aşıyor.`)
+      : tx(`The mortgage payment exceeds take-home income by ${money(result.paymentGap)}.`, `Kredi taksiti aylık net geliri ${money(result.paymentGap)} aşıyor.`),
     "both-shortfall": tx("Both paths start with a monthly shortfall.", "İki seçenek de aylık nakit açığıyla başlıyor."),
     "monthly-shortfall": tx(`Buying starts ${money(Math.abs(result.monthOneBuyCash))} short each month.`, `Ev alımında ilk ay ${money(Math.abs(result.monthOneBuyCash))} açık var.`),
     "support-cliff": tx(`The budget turns negative when support ends in ${month(result.supportCliffMonth)}.`, `Aylık destek bitince bütçe ${month(result.supportCliffMonth)} eksiye dönüyor.`),
-    "support-dependent": tx(`${money(scenario.monthlySupport)} monthly support prevents a starting shortfall.`, `${money(scenario.monthlySupport)} aylık destek başlangıçtaki açığı kapatıyor.`),
+    "support-dependent": tx(`${money(projection.rows[0].support)} monthly support prevents a starting shortfall.`, `${money(projection.rows[0].support)} aylık destek başlangıçtaki açığı kapatıyor.`),
     "future-shortfall": tx(`The buying budget turns negative in ${month(result.firstDeficitMonth)}.`, `Ev alma bütçesi ${month(result.firstDeficitMonth)} eksiye dönüyor.`),
     "reserve-breach": result.firstReserveBreachMonth === 0
       ? tx(`The purchase cuts into your ${money(scenario.reserve)} reserve immediately.`, `Alım anında ayırdığın ${money(scenario.reserve)} birikim korunamıyor.`)
@@ -21,14 +24,17 @@ export function ResultGuidance({ scenario, projection, headingId = "result-guida
   }[result.code]
   const lead = {
     "funding-gap": tx(`The modeled cash needed at purchase is ${money(projection.initialBuyCash)}, against ${money(scenario.savings)} in savings.`, `Alım için hesaplanan nakit ${money(projection.initialBuyCash)}; birikim ${money(scenario.savings)}.`),
+    "payment-exceeds-income": result.usesMonthlySupport
+      ? tx(`The payment is ${money(projection.payment)}; month-one income and support total ${money(projection.rows[0].income + projection.rows[0].support)}, before other expenses.`, `Taksit ${money(projection.payment)}; ilk ay gelir ve destek toplamı, diğer giderlerden önce ${money(projection.rows[0].income + projection.rows[0].support)}.`)
+      : tx(`The payment is ${money(projection.payment)}; take-home income is ${money(projection.rows[0].income)}, before other expenses.`, `Taksit ${money(projection.payment)}; diğer giderlerden önce net gelir ${money(projection.rows[0].income)}.`),
     "both-shortfall": tx(`Renting leaves ${money(projection.rows[0].rentSurplus)} and buying leaves ${money(result.monthOneBuyCash)} in month one.`, `İlk ay kirada ${money(projection.rows[0].rentSurplus)}, ev alımında ${money(result.monthOneBuyCash)} kalıyor.`),
     "monthly-shortfall": result.usesMonthlySupport
       ? tx(`Even with ${money(scenario.monthlySupport)} monthly support, the mortgage payment is ${money(projection.payment)}.`, `${money(scenario.monthlySupport)} aylık desteğe rağmen kredi taksiti ${money(projection.payment)}.`)
       : result.usesUpfrontSupport
         ? tx(`${money(scenario.upfrontSupport)} upfront support lowers the payment by ${money(result.upfrontSupportMonthlyGain)} a month; the payment is still ${money(projection.payment)}.`, `${money(scenario.upfrontSupport)} peşin destek taksiti ayda ${money(result.upfrontSupportMonthlyGain)} azaltıyor; mevcut taksit ${money(projection.payment)}.`)
         : tx(`The mortgage payment is ${money(projection.payment)} a month, against ${money(scenario.income)} take-home income.`, `Kredi taksiti ayda ${money(projection.payment)}; net gelir ${money(scenario.income)}.`),
-    "support-cliff": tx(`${money(scenario.monthlySupport)} monthly support is included for ${scenario.supportMonths} months; the first month without it is ${money(projection.rows[(result.supportCliffMonth ?? 1) - 1].buySurplus)}.`, `${scenario.supportMonths} ay boyunca ${money(scenario.monthlySupport)} destek dahil; desteksiz ilk ay bütçe ${money(projection.rows[(result.supportCliffMonth ?? 1) - 1].buySurplus)}.`),
-    "support-dependent": tx(`Without support, month one would be ${money(result.monthOneBuyCash - scenario.monthlySupport)}; support is included for ${scenario.supportMonths} months.`, `Destek olmadan ilk ay ${money(result.monthOneBuyCash - scenario.monthlySupport)} kalırdı; destek ${scenario.supportMonths} ay için dahil.`),
+    "support-cliff": tx(`${money(projection.rows[0].support)} monthly support is included for ${result.supportMonths} months; the first month without it is ${money(projection.rows[(result.supportCliffMonth ?? 1) - 1].buySurplus)}.`, `${result.supportMonths} ay boyunca ${money(projection.rows[0].support)} destek dahil; desteksiz ilk ay bütçe ${money(projection.rows[(result.supportCliffMonth ?? 1) - 1].buySurplus)}.`),
+    "support-dependent": tx(`Without support, month one would be ${money(result.monthOneBuyCash - projection.rows[0].support)}; help is counted toward payments for ${result.supportMonths} months.`, `Destek olmadan ilk ay ${money(result.monthOneBuyCash - projection.rows[0].support)} kalırdı; destek ${result.supportMonths} ay taksite sayılıyor.`),
     "future-shortfall": tx(`Month one leaves ${money(result.monthOneBuyCash)}; future income and expense changes follow the rates you entered.`, `İlk ay ${money(result.monthOneBuyCash)} kalıyor; sonraki gelir ve giderler girdiğin oranlarla değişiyor.`),
     "reserve-breach": tx(`The lowest modeled liquid balance is ${money(result.lowestLiquid)}.`, `Hesaplanan en düşük nakit birikim ${money(result.lowestLiquid)}.`),
     "cash-positive": tx(`Renting leaves ${money(projection.rows[0].rentSurplus)} in the same month; this compares cash flow, not total wealth.`, `Aynı ay kirada ${money(projection.rows[0].rentSurplus)} kalıyor; karşılaştırma toplam serveti değil, nakit akışını gösteriyor.`),
@@ -46,6 +52,8 @@ export function ResultGuidance({ scenario, projection, headingId = "result-guida
     : null
   const checkNext = result.code === "funding-gap"
     ? tx("Check the cash needed at signing, or test a lower-priced home.", "Satın alma için gereken nakdi kontrol et veya daha düşük ev fiyatı dene.")
+    : result.code === "payment-exceeds-income"
+    ? tx(`Even before other expenses, the payment is ${money(result.paymentGap)} too high. Test a larger affordable down payment, lower price or actual loan offer.`, `Diğer giderlerden önce bile taksit ${money(result.paymentGap)} fazla. Birikimini koruyarak daha yüksek peşinat, daha düşük fiyat veya gerçek kredi teklifi dene.`)
     : result.code === "support-cliff" || result.code === "support-dependent"
     ? tx("Test the plan without monthly support before relying on it.", "Bu plana güvenmeden önce aylık destek olmadan da dene.")
     : result.code === "both-shortfall"
@@ -75,7 +83,7 @@ export function ResultGuidance({ scenario, projection, headingId = "result-guida
       <p>{tx("The comparison uses your income, rent, living costs, debts, mortgage and support assumptions. It describes cash flow, not which choice builds more wealth.", "Karşılaştırma gelir, kira, yaşam gideri, borç, kredi ve destek varsayımlarını kullanır. Nakit akışını anlatır; hangi seçeneğin daha fazla servet oluşturduğunu söylemez.")}</p>
       {budgetPath && <p>{path}</p>}
       {result.usesUpfrontSupport && <p>{tx(`${money(scenario.upfrontSupport)} of one-time support was subtracted from the loan. At the same rate and term, it lowers the modeled payment by ${money(result.upfrontSupportMonthlyGain)} a month. A later positive balance still depends on that help at purchase.`, `${money(scenario.upfrontSupport)} peşin destek kredi tutarından düşüldü. Aynı faiz ve vadede hesaplanan taksiti ayda ${money(result.upfrontSupportMonthlyGain)} azaltır. Sonraki aylarda artıda olmak, alımı bu destekten bağımsız kılmaz.`)}</p>}
-      {result.usesMonthlySupport && <p>{tx(`Monthly support of ${money(scenario.monthlySupport)} is included for ${scenario.supportMonths} months.`, `${scenario.supportMonths} ay boyunca ${money(scenario.monthlySupport)} aylık destek dahil.`)}</p>}
+      {result.usesMonthlySupport && <p>{tx(`${money(projection.rows[0].support)} monthly help is applied to the mortgage payment for ${result.supportMonths} months, never beyond the payment itself.`, `${result.supportMonths} ay boyunca ${money(projection.rows[0].support)} aylık destek kredi taksitine sayıldı; destek taksiti aşmıyor.`)}</p>}
       {(result.missingOwnerCosts || result.missingBuyingCosts) && <p>{tx("Before deciding, check omitted ownership and purchase costs against real quotes; zero entries make this result optimistic.", "Karar vermeden önce sıfır bırakılan ev sahipliği ve alım giderlerini gerçek tekliflerle kontrol et; sıfır girişler sonucu iyimser gösterebilir.")}</p>}
       <p>{tx("This is your scenario, not a market forecast or a recommendation to buy.", "Bu senin senaryon; piyasa tahmini ya da ev alma tavsiyesi değil.")}</p>
     </div></details>

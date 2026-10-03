@@ -26,8 +26,14 @@ export function monthlyPayment(principal: number, monthlyRate: number, months: n
   return principal * (monthlyRate * factor) / (factor - 1)
 }
 
+// Zero duration means monthly help continues until the mortgage is paid.
+export function effectiveSupportMonths(d: Scenario) {
+  return d.monthlySupport > 0 ? Math.min(d.supportMonths > 0 ? d.supportMonths : d.termYears * 12, d.termYears * 12) : 0
+}
+
 export function calculate(d: Scenario) {
   const months = Number(d.horizon) * 12, loanMonths = Number(d.termYears) * 12
+  const supportMonths = effectiveSupportMonths(d)
   const monthlyRate = (d.rateMode === "monthly" ? d.rate / 100 : d.rate / 1200)
   const payment = monthlyPayment(d.principal, monthlyRate, loanMonths)
   let balance = d.principal, rent = d.rent, income = d.income, costs = d.livingCosts
@@ -43,7 +49,7 @@ export function calculate(d: Scenario) {
     const paid = m < loanMonths ? Math.min(payment, balance + interest) : 0
     const principalPart = Math.max(0, paid - interest)
     balance = Math.max(0, balance - principalPart)
-    const support = m < d.supportMonths ? d.monthlySupport : 0
+    const support = m < supportMonths ? Math.min(d.monthlySupport, paid) : 0
     const ownerCost = d.ownerCosts / 12
     const rentSurplus = income - rent - costs - d.debt
     const buySurplus = income + support - paid - ownerCost - costs - d.debt
@@ -63,7 +69,7 @@ export function annualize(rows: ProjectionRow[]) {
   })
 }
 export function firstMonth(rows: ProjectionRow[], test: (row: ProjectionRow) => boolean) { const row = rows.find(test); return row ? row.m + 1 : null }
-export function independentMonth(d: Scenario, r: Projection) { return firstMonth(r.rows, row => row.m >= d.supportMonths && row.buySurplus >= 0 && r.rows.slice(row.m).every(later => later.buySurplus >= 0)) }
+export function independentMonth(d: Scenario, r: Projection) { return firstMonth(r.rows, row => row.m >= effectiveSupportMonths(d) && row.buySurplus >= 0 && r.rows.slice(row.m).every(later => later.buySurplus >= 0)) }
 
 export function validateScenario(d: Scenario): string | null {
   if (![d.income, d.rent, d.propertyPrice, d.livingCosts, d.savings, d.downPayment, d.rate, d.termYears, d.horizon].every(Number.isFinite)) return "invalid"
