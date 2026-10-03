@@ -2,7 +2,7 @@ import { useProduct } from "@/lib/product-context"
 import { deriveResultGuidance } from "@/lib/result-guidance"
 import type { Projection, Scenario } from "@/lib/engine"
 
-export function ResultGuidance({ scenario, projection }: { scenario: Scenario; projection: Projection }) {
+export function ResultGuidance({ scenario, projection, headingId = "result-guidance-title" }: { scenario: Scenario; projection: Projection; headingId?: string }) {
   const { tx, money } = useProduct()
   const result = deriveResultGuidance(scenario, projection)
   const month = (value: number | null) => `${tx("month", "ay")} ${value}`
@@ -50,9 +50,9 @@ export function ResultGuidance({ scenario, projection }: { scenario: Scenario; p
     ? tx(`A 10% lower home price improves month-one cash by ${money(result.lowerPriceMonthlyGain)} in this model.`, `Ev fiyatı %10 düşük olursa bu modelde ilk ay elde kalan ${money(result.lowerPriceMonthlyGain)} artıyor.`)
     : tx("Test a lower price or a verified loan offer while keeping your reserve.", "Ayırdığın birikimi koruyarak daha düşük fiyat veya gerçek kredi teklifi dene.")
 
-  return <section aria-labelledby="result-guidance-title" className="mb-6">
+  return <section aria-labelledby={headingId} className="mb-6">
     <p className="text-[11px] font-semibold tracking-[.1em] text-primary uppercase">{tx("Your scenario", "Senaryon")}</p>
-    <h1 id="result-guidance-title" className="mt-2 max-w-[760px] text-[clamp(2rem,4vw,3.2rem)] leading-[1.06] font-semibold tracking-[-.065em]">{headline}</h1>
+    <h1 id={headingId} className="mt-2 max-w-[760px] text-[clamp(2rem,4vw,3.2rem)] leading-[1.06] font-semibold tracking-[-.065em]">{headline}</h1>
     <p className="mt-3 text-[14px] text-ink-soft">{lead}</p>
     <div className="mt-5 grid gap-2 sm:grid-cols-2">
       <div className="rounded-[13px] bg-[#edf2ff] p-4 dark:bg-[#24282e]"><p className="text-[11px] font-semibold text-muted-foreground">{tx("Over time", "Zaman içinde")}</p><p className="mt-1 text-[13px] font-medium leading-5">{budgetPath ?? path}</p></div>

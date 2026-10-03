@@ -5,6 +5,8 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { BrandHeader, PublicFooter } from "@/components/product/shell"
 import { SetupPage } from "@/pages/setup"
 import { ResultsPage } from "@/pages/results"
+import { ResultGuidance } from "@/components/product/result-guidance"
+import { calculate } from "@/lib/engine"
 import { previewScenarios } from "@/lib/fixtures"
 import { cn, sitePath } from "@/lib/utils"
 import { useProduct } from "@/lib/product-context"
@@ -58,27 +60,35 @@ function NotebookStep({ number, title, detail, color }: { number: string; title:
 
 export function HomePage() {
   const active = useSectionMotion()
-  const { tx, money, isExample } = useProduct()
-  const [resultsOpen, setResultsOpen] = React.useState(!isExample)
+  const { tx, money, isExample, scenario } = useProduct()
+  const [workspaceView, setWorkspaceView] = React.useState<"setup" | "results">(isExample ? "setup" : "results")
+  const [resultsOpen, setResultsOpen] = React.useState(false)
   const [setupKey, setSetupKey] = React.useState(0)
   const closeResults = () => setResultsOpen(false)
-  const clearResults = () => { setSetupKey(current => current + 1); closeResults() }
+  const editScenario = () => { setWorkspaceView("setup"); closeResults(); document.getElementById("workspace")?.scrollIntoView({ behavior: "smooth" }) }
+  const clearResults = () => { setSetupKey(current => current + 1); editScenario() }
+  const projection = React.useMemo(() => resultsOpen ? calculate(scenario) : null, [resultsOpen, scenario])
   return <div className="min-h-screen bg-white text-foreground">
     <BrandHeader />
     <main>
       <section id="workspace" aria-label={tx("Rent versus buy planner", "Kira ve ev alma planlayıcısı")} className="scroll-mt-20 bg-background">
-        <SetupPage key={setupKey} embedded onComplete={() => setResultsOpen(true)} />
+        {workspaceView === "setup"
+          ? <SetupPage key={setupKey} embedded onComplete={() => { setWorkspaceView("results"); setResultsOpen(true); document.getElementById("workspace")?.scrollIntoView({ behavior: "smooth" }) }} />
+          : <ResultsPage embedded onEdit={editScenario} onClear={clearResults} />}
       </section>
 
       <DialogPrimitive.Root open={resultsOpen} onOpenChange={setResultsOpen}>
         <DialogPrimitive.Portal>
-          <DialogPrimitive.Overlay className="results-overlay fixed inset-0 z-50 bg-black/55 backdrop-blur-[5px]" />
-          <DialogPrimitive.Content className="results-dialog fixed inset-y-2 left-1/2 z-50 w-[calc(100%-16px)] max-w-[1512px] -translate-x-1/2 overflow-y-auto overscroll-contain rounded-[20px] bg-background text-foreground shadow-[0_30px_100px_-30px_rgba(0,0,0,.45)] ring-1 ring-black/5 outline-none dark:ring-white/15 sm:inset-y-5 sm:w-[calc(100%-40px)] sm:rounded-[26px]" aria-describedby={undefined}>
-            <div className="sticky top-0 z-40 flex min-h-15 items-center justify-between gap-4 rounded-t-[20px] bg-background/95 px-5 shadow-[0_10px_24px_-24px_rgba(0,0,0,.6)] backdrop-blur-md sm:min-h-17 sm:px-8">
-              <DialogPrimitive.Title className="text-[15px] font-semibold tracking-[-.03em] sm:text-[17px]">{tx("Your results", "Sonuçların")}</DialogPrimitive.Title>
-              <DialogPrimitive.Close asChild><Button type="button" variant="ghost" size="icon" className="size-10 rounded-full" aria-label={tx("Close results and return to planner", "Sonuçları kapat ve planlayıcıya dön")}><X className="size-4" /></Button></DialogPrimitive.Close>
+          <DialogPrimitive.Overlay className="results-overlay fixed inset-0 z-50 bg-black/45 backdrop-blur-[3px]" />
+          <DialogPrimitive.Content className="results-dialog fixed left-1/2 top-1/2 z-50 flex max-h-[88dvh] w-[calc(100%-24px)] max-w-[780px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[22px] bg-background text-foreground shadow-[0_30px_100px_-30px_rgba(0,0,0,.4)] ring-1 ring-black/5 outline-none dark:ring-white/15 sm:rounded-[26px]" aria-describedby={undefined}>
+            <DialogPrimitive.Title className="sr-only">{tx("Your result", "Sonucun")}</DialogPrimitive.Title>
+            <div className="flex justify-end px-4 pt-4 sm:px-7 sm:pt-5">
+              <DialogPrimitive.Close asChild><Button type="button" variant="ghost" size="icon" className="size-10 rounded-full" aria-label={tx("Close summary and view full results", "Özeti kapat ve tüm sonuçları gör")}><X className="size-4" /></Button></DialogPrimitive.Close>
             </div>
-            {resultsOpen && <ResultsPage embedded onEdit={closeResults} onClear={clearResults} onNavigateMethodology={closeResults} />}
+            <div className="overflow-y-auto overscroll-contain px-5 pb-6 sm:px-9 sm:pb-8">
+              {projection && <ResultGuidance scenario={scenario} projection={projection} headingId="result-dialog-heading" />}
+              <DialogPrimitive.Close asChild><Button type="button" className="h-11 w-full rounded-full sm:w-auto">{tx("View full results", "Tüm sonuçları gör")} <ArrowRight className="size-4" /></Button></DialogPrimitive.Close>
+            </div>
           </DialogPrimitive.Content>
         </DialogPrimitive.Portal>
       </DialogPrimitive.Root>
