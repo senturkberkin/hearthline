@@ -23,6 +23,10 @@ export function monthlyPayment(principal: number, monthlyRate: number, months: n
   if (principal <= 0) return 0
   if (monthlyRate === 0) return principal / months
   const factor = Math.pow(1 + monthlyRate, months)
+  if (factor === 1) return principal / months
+  // For extreme but finite rates the exponent can overflow; the limiting
+  // payment is principal × rate, not NaN from Infinity / Infinity.
+  if (!Number.isFinite(factor)) return principal * monthlyRate
   return principal * (monthlyRate * factor) / (factor - 1)
 }
 
@@ -69,14 +73,18 @@ export function annualize(rows: ProjectionRow[]) {
   })
 }
 export function firstMonth(rows: ProjectionRow[], test: (row: ProjectionRow) => boolean) { const row = rows.find(test); return row ? row.m + 1 : null }
-export function independentMonth(d: Scenario, r: Projection) { return firstMonth(r.rows, row => row.m >= effectiveSupportMonths(d) && row.buySurplus >= 0 && r.rows.slice(row.m).every(later => later.buySurplus >= 0)) }
+export function independentMonth(_d: Scenario, r: Projection) { return firstMonth(r.rows, row => row.buySurplus - row.support >= 0 && r.rows.slice(row.m).every(later => later.buySurplus - later.support >= 0)) }
 
 export function validateScenario(d: Scenario): string | null {
-  if (![d.income, d.rent, d.propertyPrice, d.livingCosts, d.savings, d.downPayment, d.rate, d.termYears, d.horizon].every(Number.isFinite)) return "invalid"
+  if (![d.income, d.rent, d.propertyPrice, d.livingCosts, d.savings, d.reserve, d.downPayment, d.rate, d.termYears, d.horizon, d.upfrontSupport, d.monthlySupport, d.supportMonths, d.closingCosts, d.renovation, d.ownerCosts, d.debt, d.incomeGrowth, d.rentGrowth, d.expenseGrowth, d.raiseMonth, d.rentRenewal].every(Number.isFinite)) return "invalid"
   if (d.income <= 0 || d.rent <= 0 || d.propertyPrice <= 0 || d.termYears <= 0 || d.horizon <= 0) return "positive"
-  if ([d.livingCosts, d.savings, d.downPayment, d.rate, d.upfrontSupport, d.monthlySupport, d.supportMonths, d.closingCosts, d.renovation, d.ownerCosts, d.debt].some(value => value < 0)) return "negative"
+  if (!Number.isInteger(d.termYears) || !Number.isInteger(d.horizon) || !Number.isInteger(d.supportMonths) || d.termYears > 40 || d.horizon > 40) return "range"
+  if ((d.rateMode !== "monthly" && d.rateMode !== "annual") || d.rate > (d.rateMode === "monthly" ? 100 : 1200)) return "range"
+  if ([d.livingCosts, d.savings, d.reserve, d.downPayment, d.rate, d.upfrontSupport, d.monthlySupport, d.supportMonths, d.closingCosts, d.renovation, d.ownerCosts, d.debt].some(value => value < 0)) return "negative"
   if (d.downPayment + d.upfrontSupport > d.propertyPrice) return "contribution"
   if (d.downPayment + d.closingCosts + d.renovation > d.savings) return "savings"
+  const projection = calculate(withPrincipal(d))
+  if (![projection.payment, projection.rentLiquid, projection.buyLiquid, projection.balance].every(Number.isFinite) || projection.rows.some(row => Object.values(row).some(value => !Number.isFinite(value)))) return "invalid"
   return null
 }
 

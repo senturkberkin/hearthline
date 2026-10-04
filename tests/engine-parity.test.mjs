@@ -21,7 +21,8 @@ function check(facts, overrides = {}) {
   const newResult = current.calculate(newScenario);
   assert.deepEqual(JSON.parse(JSON.stringify(newResult)), JSON.parse(JSON.stringify(oldResult)));
   assert.deepEqual(JSON.parse(JSON.stringify(current.annualize(newResult.rows))), JSON.parse(JSON.stringify(legacy.annualize(oldResult.rows))));
-  assert.equal(current.independentMonth(newScenario,newResult),legacy.independentMonth(oldScenario,oldResult));
+  // Support-independent serviceability intentionally no longer waits for help to expire.
+  if (!overrides.monthlySupport) assert.equal(current.independentMonth(newScenario,newResult),legacy.independentMonth(oldScenario,oldResult));
 }
 
 test('React engine matches the unchanged legacy engine across representative scenarios', () => {
@@ -56,4 +57,26 @@ test('annual growth in other monthly expenses affects both housing paths', () =>
   assert.ok(Math.abs(growing.rows[12].rentSurplus-(flat.rows[12].rentSurplus-2200))<0.01);
   assert.ok(Math.abs(growing.rows[12].buySurplus-(flat.rows[12].buySurplus-2200))<0.01);
   assert.ok(Math.abs(growing.rows[24].rentSurplus-(flat.rows[24].rentSurplus-4620))<0.01);
+});
+
+test('E01 full-term help does not hide a budget that works independently from month one', () => {
+  const scenario=current.withPrincipal({...current.scenarioFromFacts({income:90000,rent:30000,livingCosts:20000,savings:600000,propertyPrice:1000000}),monthlySupport:10000,supportMonths:0});
+  const projection=current.calculate(scenario);
+  assert.ok(projection.rows[0].buySurplus-projection.rows[0].support > 0);
+  assert.equal(current.independentMonth(scenario,projection),1);
+});
+
+test('E02 payment remains finite at an extreme finite rate', () => {
+  assert.equal(current.monthlyPayment(1000000,1000,120),1000000000);
+  assert.ok(Number.isFinite(current.monthlyPayment(1000000,1e-17,120)));
+});
+
+test('E03 validation rejects invalid optional values and unbounded projection lengths', () => {
+  const base=current.scenarioFromFacts({income:75000,rent:28000,livingCosts:22000,savings:500000,propertyPrice:4500000});
+  assert.equal(current.validateScenario({...base,upfrontSupport:NaN}),'invalid');
+  assert.equal(current.validateScenario({...base,horizon:1000000}),'range');
+  assert.equal(current.validateScenario({...base,termYears:41}),'range');
+  assert.equal(current.validateScenario({...base,horizon:40,termYears:40}),null);
+  assert.equal(current.validateScenario({...base,rate:100}),null);
+  assert.equal(current.validateScenario({...base,rate:100.01}),'range');
 });

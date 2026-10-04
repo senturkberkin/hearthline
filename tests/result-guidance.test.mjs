@@ -148,3 +148,21 @@ test('G24 earlier end month is an exception; support disappears at its boundary'
   assert.equal(projection.rows[5].support,10000);
   assert.equal(projection.rows[6].support,0);
 });
+test('G25 repeated lower-price tests move through payment gap, general budget gap and positive buying cash', () => {
+  let scenario=engine.withPrincipal({...engine.scenarioFromFacts({income:40000,rent:28000,livingCosts:22000,savings:500000,propertyPrice:4500000}),incomeGrowth:20,rentGrowth:6});
+  const codes=[];
+  for (let i=0;i<=14;i++) {
+    codes.push(deriveResultGuidance(scenario,engine.calculate(scenario)).code);
+    scenario=engine.withPrincipal({...scenario,propertyPrice:Math.round(scenario.propertyPrice*.9)});
+  }
+  assert.equal(codes[0],'payment-exceeds-income');
+  assert.equal(codes[7],'payment-exceeds-income');
+  assert.equal(codes[8],'both-shortfall');
+  assert.equal(codes[14],'cash-positive');
+});
+test('G26 a later mortgage-payment gap has its own result', () => {
+  const {guidance}=result({income:120000,incomeGrowth:-80});
+  assert.equal(guidance.code,'future-payment-exceeds-income');
+  assert.equal(guidance.futurePaymentGapMonth,13);
+  assert.ok(guidance.futurePaymentGapAmount > 0);
+});

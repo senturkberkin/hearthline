@@ -1,6 +1,6 @@
 import { calculate, effectiveSupportMonths, withPrincipal, type Projection, type Scenario } from "./engine"
 
-export type ResultCode = "funding-gap" | "payment-exceeds-income" | "both-shortfall" | "monthly-shortfall" | "support-cliff" | "support-dependent" | "future-shortfall" | "reserve-breach" | "cash-positive"
+export type ResultCode = "funding-gap" | "payment-exceeds-income" | "both-shortfall" | "monthly-shortfall" | "support-cliff" | "support-dependent" | "future-payment-exceeds-income" | "future-shortfall" | "reserve-breach" | "cash-positive"
 export type TrendCode = "crosses" | "narrows" | "widens" | "stays-behind" | "buy-ahead" | "rent-overtakes" | "even"
 
 // These are observations about the supplied scenario, not lending or investment advice.
@@ -10,12 +10,13 @@ export function deriveResultGuidance(scenario: Scenario, projection: Projection)
   const supportMonths = effectiveSupportMonths(scenario)
   const fundingGap = Math.max(0, projection.initialBuyCash - scenario.savings)
   const firstDeficit = rows.find(row => row.buySurplus < 0)
+  const futurePaymentGap = rows.find(row => row.m > 0 && row.payment > row.income + row.support)
   const reserveBreachAtPurchase = scenario.reserve > 0 && scenario.savings - projection.initialBuyCash < scenario.reserve
   const firstReserveBreach = scenario.reserve > 0 ? rows.find(row => row.buyLiquid < scenario.reserve) : undefined
   const supportEnd = supportMonths > 0 && supportMonths < rows.length ? rows[supportMonths] : undefined
   const supportCliff = !!supportEnd && rows[supportMonths - 1].buySurplus >= 0 && supportEnd.buySurplus < 0
   const supportDependent = first.support > 0 && first.buySurplus >= 0 && first.buySurplus - first.support < 0
-  const recovery = rows.find(row => row.m >= supportMonths && row.buySurplus >= 0 && rows.slice(row.m).every(later => later.buySurplus >= 0))
+  const recovery = rows.find(row => row.buySurplus - row.support >= 0 && rows.slice(row.m).every(later => later.buySurplus - later.support >= 0))
   const firstGap = first.buySurplus - first.rentSurplus
   const lastGap = rows.at(-1)!.buySurplus - rows.at(-1)!.rentSurplus
   const crossover = firstGap < 0 ? rows.find(row => row.m > 0 && row.buySurplus >= row.rentSurplus && rows.slice(row.m).every(later => later.buySurplus >= later.rentSurplus)) : undefined
@@ -24,7 +25,7 @@ export function deriveResultGuidance(scenario: Scenario, projection: Projection)
   const materialChange = Math.abs(firstGap) * .1
   const trend: TrendCode = firstGap === 0 ? "even" : firstGap > 0 ? (rentOvertakes ? "rent-overtakes" : "buy-ahead") : crossover ? "crosses" : change > materialChange ? "narrows" : change < -materialChange ? "widens" : "stays-behind"
   const paymentGap = Math.max(0, first.payment - first.income - first.support)
-  const code: ResultCode = fundingGap > 0 ? "funding-gap" : paymentGap > 0 ? "payment-exceeds-income" : first.buySurplus < 0 && first.rentSurplus < 0 ? "both-shortfall" : first.buySurplus < 0 ? "monthly-shortfall" : supportCliff ? "support-cliff" : supportDependent ? "support-dependent" : firstDeficit ? "future-shortfall" : reserveBreachAtPurchase || firstReserveBreach ? "reserve-breach" : "cash-positive"
+  const code: ResultCode = fundingGap > 0 ? "funding-gap" : paymentGap > 0 ? "payment-exceeds-income" : first.buySurplus < 0 && first.rentSurplus < 0 ? "both-shortfall" : first.buySurplus < 0 ? "monthly-shortfall" : supportCliff ? "support-cliff" : supportDependent ? "support-dependent" : futurePaymentGap ? "future-payment-exceeds-income" : firstDeficit ? "future-shortfall" : reserveBreachAtPurchase || firstReserveBreach ? "reserve-breach" : "cash-positive"
 
   // A controlled price change gives the user one concrete lever without ranking
   // unlike variables or assuming that a cheaper property is available.
@@ -41,6 +42,8 @@ export function deriveResultGuidance(scenario: Scenario, projection: Projection)
 
   return {
     code, trend, fundingGap, paymentGap, supportMonths, firstDeficitMonth: firstDeficit ? firstDeficit.m + 1 : null,
+    futurePaymentGapMonth: futurePaymentGap ? futurePaymentGap.m + 1 : null,
+    futurePaymentGapAmount: futurePaymentGap ? futurePaymentGap.payment - futurePaymentGap.income - futurePaymentGap.support : 0,
     firstReserveBreachMonth: reserveBreachAtPurchase ? 0 : firstReserveBreach ? firstReserveBreach.m + 1 : null,
     supportCliffMonth: supportCliff ? supportEnd!.m + 1 : null,
     recoveryMonth: recovery ? recovery.m + 1 : null,
