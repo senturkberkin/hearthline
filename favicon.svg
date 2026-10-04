@@ -1,1 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#3758c8"/><g fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"><path d="M10 17h44M10 47h44M16 17c14 0 14 30 28 30M48 17C34 17 34 47 20 47"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Hearthline">
+  <circle cx="64" cy="64" r="62" fill="#1b68c8"/>
+  <path d="M29 58 64 29l35 29" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M39 60v37m50-37v37M39 80h50" fill="none" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
