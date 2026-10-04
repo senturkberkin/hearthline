@@ -7,8 +7,8 @@ import { sitePath } from "@/lib/utils"
 
 export function Brand() {
   return <a href={sitePath("/")} className="inline-flex items-center gap-2.5 font-semibold tracking-[-.035em] text-foreground" aria-label="Hearthline home">
-    <img src={sitePath("/hearthline-icon.svg")} alt="" width="42" height="42" className="size-[42px] dark:hidden" />
-    <img src={sitePath("/hearthline-icon-dark.svg")} alt="" width="42" height="42" className="hidden size-[42px] dark:block" />
+    <img src={sitePath("/hearthline-icon.svg?v=2")} alt="" width="42" height="42" className="size-[42px] dark:hidden" />
+    <img src={sitePath("/hearthline-icon-dark.svg?v=2")} alt="" width="42" height="42" className="hidden size-[42px] dark:block" />
     <span className="text-[18px]">Hearthline</span>
   </a>
 }
