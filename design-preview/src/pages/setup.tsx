@@ -52,7 +52,6 @@ export function SetupPage({ embedded = false, onComplete }: { embedded?: boolean
     const problem = validateScenario(next)
     if (problem) { setError(problem === "range" ? tx("Use a loan term and scenario length of 1–40 years, and check the interest rate.", "Vade ve senaryo süresi 1–40 yıl olmalı; faiz oranını da kontrol et.") : tx("Check the home price, savings and contribution amounts.", "Ev fiyatını, birikimi ve katkı tutarlarını kontrol et.")); return }
     setScenario(next)
-    try { sessionStorage.setItem("hearthline.scenario.v1", JSON.stringify(next)) } catch { /* Continue in memory if storage is unavailable. */ }
     if (onComplete) onComplete()
     else window.location.assign(sitePath("/results/"))
   }

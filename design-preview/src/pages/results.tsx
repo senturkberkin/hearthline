@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ArrowLeft, ArrowRight, SlidersHorizontal } from "lucide-react"
+import { ArrowLeft, ArrowRight, FileText, FolderOpen, Save, SlidersHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -10,10 +10,12 @@ import { CashFlowTimeline } from "@/components/product/cash-flow-timeline"
 import { ScenarioControlRail } from "@/components/product/scenario-control-rail"
 import { KeyMilestone } from "@/components/product/key-milestone"
 import { ResultGuidance } from "@/components/product/result-guidance"
+import { SaveScenarioDialog, SavedScenariosDialog } from "@/components/product/scenario-library"
 import { deriveResultGuidance } from "@/lib/result-guidance"
 import { useProduct } from "@/lib/product-context"
 import { sitePath } from "@/lib/utils"
 import { annualize, calculate, firstMonth, independentMonth, validateScenario, withPrincipal, type Projection, type Scenario } from "@/lib/engine"
+import { deserializeScenario, type SavedScenarioRecord } from "@/lib/saved-scenarios"
 
 function Milestones({ scenario, projection }: { scenario: Scenario; projection: Projection }) {
   const { tx, percent } = useProduct()
@@ -49,15 +51,26 @@ function BiggestLevers({ scenario, projection, onChange }: { scenario: Scenario;
   </section>
 }
 
-function ResultActions({ onEdit, onClear }: { onEdit?: () => void; onClear?: () => void }) {
-  const { tx, clearScenario } = useProduct()
+function ResultActions({ onEdit, onClear, onLoaded, canSave }: { onEdit?: () => void; onClear?: () => void; onLoaded: (record: SavedScenarioRecord) => void; canSave: boolean }) {
+  const { tx, clearScenario, savedScenarios, activeSavedId, saveStatus, saveIssue, saveScenario, setReportOpen } = useProduct()
+  const [saveOpen, setSaveOpen] = React.useState(false)
+  const [libraryOpen, setLibraryOpen] = React.useState(false)
+  const [menuOpen, setMenuOpen] = React.useState(false)
   const editLabel = tx("Edit scenario", "Senaryoyu düzenle")
   const editContent = <><ArrowLeft className="size-4" />{editLabel}</>
+  const saveAction = !activeSavedId && <Button type="button" variant="outline" size="sm" disabled={!canSave} onClick={() => { setMenuOpen(false); setSaveOpen(true) }}><Save className="size-3.5" />{tx("Save scenario", "Senaryoyu kaydet")}</Button>
+  const libraryAction = (savedScenarios.length > 0 || saveIssue === "malformed" || saveIssue === "future") && <Button type="button" variant="ghost" size="sm" onClick={() => { setMenuOpen(false); setLibraryOpen(true) }}><FolderOpen className="size-3.5" />{tx("Saved", "Kayıtlılar")}{savedScenarios.length > 0 && ` (${savedScenarios.length})`}</Button>
+  const retryAction = activeSavedId && saveStatus === "error" && <Button type="button" variant="outline" size="sm" onClick={() => saveScenario(savedScenarios.find(record => record.id === activeSavedId)?.name ?? tx("Scenario", "Senaryo"))}>{tx("Retry save", "Kaydetmeyi yeniden dene")}</Button>
+  const reportAction = <Button type="button" variant="ghost" size="sm" disabled={!canSave} onClick={() => { setMenuOpen(false); setReportOpen(true) }}><FileText className="size-3.5" />{tx("Print / Save PDF", "Yazdır / PDF kaydet")}</Button>
   return <div className="flex flex-wrap items-center justify-between gap-3">
     {onEdit
       ? <Button type="button" onClick={onEdit} className="h-11 w-full rounded-full px-5 text-[14px] sm:w-auto">{editContent}</Button>
       : <Button asChild className="h-11 w-full rounded-full px-5 text-[14px] sm:w-auto"><a href={sitePath("/setup/")}>{editContent}</a></Button>}
-    <button type="button" className="ml-auto rounded-md px-2 py-2 text-[12px] text-ink-soft hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" onClick={() => { clearScenario(); if (onClear) onClear(); else window.location.assign(sitePath("/setup/")) }}>{tx("Clear data", "Verileri temizle")}</button>
+    <div className="ml-auto hidden items-center gap-1 sm:flex">{saveAction}{retryAction}{libraryAction}{reportAction}<button type="button" className="rounded-md px-2 py-2 text-[12px] text-ink-soft hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" onClick={() => { clearScenario(); if (onClear) onClear(); else window.location.assign(sitePath("/setup/")) }}>{tx("Clear current scenario", "Açık senaryoyu temizle")}</button></div>
+    <Sheet open={menuOpen} onOpenChange={setMenuOpen}><SheetTrigger asChild><Button type="button" variant="outline" className="w-full sm:hidden">{tx("Save & report", "Kaydet ve raporla")}</Button></SheetTrigger><SheetContent side="bottom" className="rounded-t-[16px] bg-background p-5"><SheetHeader className="px-0"><SheetTitle className="text-left">{tx("Scenario actions", "Senaryo işlemleri")}</SheetTitle></SheetHeader><div className="mt-5 grid justify-items-start gap-3">{saveAction}{retryAction}{libraryAction}{reportAction}<button type="button" className="px-2 py-2 text-[12px] text-ink-soft" onClick={() => { setMenuOpen(false); clearScenario(); if (onClear) onClear(); else window.location.assign(sitePath("/setup/")) }}>{tx("Clear current scenario", "Açık senaryoyu temizle")}</button></div></SheetContent></Sheet>
+    {activeSavedId && <span role="status" className="w-full text-right text-[11px] text-ink-soft">{saveStatus === "saved" ? tx("Saved on this device", "Bu cihaza kaydedildi") : saveStatus === "error" || saveIssue ? tx("Changes not saved", "Değişiklikler kaydedilemedi") : tx("Unsaved changes", "Kaydedilmemiş değişiklikler")}</span>}
+    <SaveScenarioDialog open={saveOpen} onOpenChange={setSaveOpen} />
+    <SavedScenariosDialog open={libraryOpen} onOpenChange={setLibraryOpen} onLoaded={onLoaded} />
   </div>
 }
 
@@ -75,9 +88,10 @@ export function ResultsPage({ embedded = false, onEdit, onClear, onNavigateMetho
   const baselineMonths = projection.rows.filter(row => row.buySurplus < 0).length
   const update = (next: Scenario) => { setScenario(next); setStressRun(false) }
   const reset = () => { setScenario(initial.current); setStressRun(false); setControlsVersion(version => version + 1) }
+  const loaded = (record: SavedScenarioRecord) => { const restored = deserializeScenario(record.payload); if (restored) initial.current = restored; setStressRun(false); setControlsVersion(version => version + 1) }
   const Content = embedded ? "div" : "main"
 
-  return <div className={embedded ? "bg-background" : "min-h-screen bg-background"}>{!embedded && <BrandHeader mode="app" />}<Content className="mx-auto max-w-[1320px] px-5 pb-18 pt-7 sm:px-8 lg:pt-9"><ResultActions onEdit={onEdit} onClear={onClear} /><div className="mt-7 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_286px] xl:gap-11"><div className="min-w-0">{!problem || problem === "savings" ? <ResultGuidance scenario={scenario} projection={projection} /> : <h1 className="mb-6 text-[clamp(2rem,4vw,3.2rem)] font-semibold tracking-[-.065em]">{tx("Check your assumptions", "Varsayımlarını kontrol et")}</h1>}
+  return <div className={embedded ? "bg-background" : "min-h-screen bg-background"}>{!embedded && <BrandHeader mode="app" />}<Content className="mx-auto max-w-[1320px] px-5 pb-18 pt-7 sm:px-8 lg:pt-9"><ResultActions onEdit={onEdit} onClear={onClear} onLoaded={loaded} canSave={!problem} /><div className="mt-7 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_286px] xl:gap-11"><div className="min-w-0">{!problem || problem === "savings" ? <ResultGuidance scenario={scenario} projection={projection} /> : <h1 className="mb-6 text-[clamp(2rem,4vw,3.2rem)] font-semibold tracking-[-.065em]">{tx("Check your assumptions", "Varsayımlarını kontrol et")}</h1>}
       {problem && <p role="alert" className="mb-4 rounded-[12px] bg-destructive/10 p-4 text-[12px] font-medium text-destructive">{problem === "savings" ? tx("Down payment and buying costs exceed savings. Calculations update, but this purchase needs more available funds.", "Peşinat ve alım giderleri birikimini aşıyor. Hesap güncellenir; bu alım için daha fazla kullanılabilir birikim gerekir.") : tx("Check these assumptions. The last valid result remains visible.", "Varsayımları kontrol et. Son geçerli sonuç gösteriliyor.")}</p>}
       <RentBuyComparison projection={projection} /><div className="mt-8"><CashFlowTimeline projection={projection} /></div><div className="mt-4 lg:hidden"><Sheet><SheetTrigger asChild><Button variant="outline" className="w-full"><SlidersHorizontal className="size-4" />{tx("Adjust assumptions", "Varsayımları düzenle")}</Button></SheetTrigger><SheetContent side="bottom" className="max-h-[88dvh] overflow-y-auto rounded-t-[16px] bg-background p-5"><SheetHeader className="px-0"><SheetTitle className="text-left">{tx("Explore changes", "Değişiklikleri dene")}</SheetTitle></SheetHeader><ScenarioControlRail key={controlsVersion} scenario={scenario} onChange={update} onReset={reset} className="mt-3 border-0 p-0" /></SheetContent></Sheet></div><div className="mt-9"><Milestones scenario={scenario} projection={projection} /></div>
       <Tabs defaultValue="overview" className="mt-12"><TabsList className="mb-6 w-full justify-start gap-2 overflow-x-auto rounded-[12px] bg-[#f0f3fc] p-1"><TabsTrigger value="overview" className="flex-none px-3 text-[12px]">{tx("Overview", "Genel bakış")}</TabsTrigger><TabsTrigger value="annual" className="flex-none px-3 text-[12px]">{tx("Annual table", "Yıllık tablo")}</TabsTrigger><TabsTrigger value="mortgage" className="flex-none px-3 text-[12px]">{tx("Mortgage", "Kredi")}</TabsTrigger><TabsTrigger value="stress" className="flex-none px-3 text-[12px]">{tx("Stress test", "Stres testi")}</TabsTrigger></TabsList><TabsContent value="overview"><BiggestLevers scenario={scenario} projection={projection} onChange={update} /></TabsContent><TabsContent value="annual"><AnnualTable projection={projection} /></TabsContent><TabsContent value="mortgage"><div className="grid gap-4 rounded-[16px] bg-[#f7f9ff] p-5 sm:grid-cols-3">{[[tx("Monthly payment", "Aylık ödeme"), money(projection.payment)], [tx("Total interest", "Toplam faiz"), money(projection.cumulativeInterest)], [tx("Loan left", "Kalan kredi"), money(projection.balance)]].map(([label, value]) => <div key={label}><p className="text-[11px] text-muted-foreground">{label}</p><strong className="mt-2 block text-[18px] font-semibold tabular-nums">{value}</strong></div>)}</div></TabsContent><TabsContent value="stress"><div className="rounded-[16px] bg-[#f7f9ff] p-5"><h2 className="text-[16px] font-semibold">{tx("Test one change", "Tek bir değişikliği dene")}</h2><div className="mt-4 flex flex-wrap items-center gap-3"><select className="h-10 rounded-[9px] bg-card px-3 text-[12px]" value={stress} onChange={event => { setStress(event.target.value as typeof stress); setStressRun(false) }}><option value="income">{tx("Income growth 5 points lower", "Gelir artışı 5 puan düşük")}</option><option value="expenses">{tx("Living costs grow 5 points faster", "Yaşam giderleri 5 puan hızlı artıyor")}</option></select><Button size="sm" onClick={() => setStressRun(true)}>{tx("Run stress test", "Stres testini çalıştır")}</Button></div>{stressRun && <p className="mt-4 text-[13px]">{tx("Months with negative buying cash flow", "Ev alımında nakit açığı olan ay")}: <strong>{stressedMonths}</strong> <span className="text-muted-foreground">({stressedMonths - baselineMonths >= 0 ? "+" : ""}{stressedMonths - baselineMonths} {tx("vs current", "mevcut senaryoya göre")})</span></p>}</div></TabsContent></Tabs>

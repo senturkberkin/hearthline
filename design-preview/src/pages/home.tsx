@@ -6,6 +6,7 @@ import { BrandHeader, PublicFooter } from "@/components/product/shell"
 import { SetupPage } from "@/pages/setup"
 import { ResultsPage } from "@/pages/results"
 import { ResultGuidance } from "@/components/product/result-guidance"
+import { SavedScenariosDialog } from "@/components/product/scenario-library"
 import { calculate } from "@/lib/engine"
 import { previewScenarios } from "@/lib/fixtures"
 import { cn, sitePath } from "@/lib/utils"
@@ -60,7 +61,7 @@ function NotebookStep({ number, title, detail, color }: { number: string; title:
 
 export function HomePage() {
   const active = useSectionMotion()
-  const { tx, money, isExample, scenario } = useProduct()
+  const { tx, money, isExample, scenario, savedScenarios, saveIssue } = useProduct()
   const [workspaceView, setWorkspaceView] = React.useState<"setup" | "results">(isExample ? "setup" : "results")
   const [resultsOpen, setResultsOpen] = React.useState(false)
   const [setupKey, setSetupKey] = React.useState(0)
@@ -72,6 +73,7 @@ export function HomePage() {
     <BrandHeader />
     <main>
       <section id="workspace" aria-label={tx("Rent versus buy planner", "Kira ve ev alma planlayıcısı")} className="scroll-mt-20 bg-background">
+        {workspaceView === "setup" && (savedScenarios.length > 0 || saveIssue === "malformed" || saveIssue === "future") && <div className="mx-auto flex max-w-[1240px] justify-end px-5 pt-4 sm:px-8"><SavedScenariosDialog onLoaded={() => { setWorkspaceView("results"); setResultsOpen(false) }}><button type="button" className="text-[12px] font-semibold text-primary hover:underline">{tx("Open saved scenarios", "Kayıtlı senaryolar")}{savedScenarios.length > 0 && ` (${savedScenarios.length})`}</button></SavedScenariosDialog></div>}
         {workspaceView === "setup"
           ? <SetupPage key={setupKey} embedded onComplete={() => { setWorkspaceView("results"); setResultsOpen(true); document.getElementById("workspace")?.scrollIntoView({ behavior: "smooth" }) }} />
           : <ResultsPage embedded onEdit={editScenario} onClear={clearResults} />}
@@ -121,7 +123,7 @@ export function HomePage() {
         </div>
       </section>
 
-      <section id="privacy" className="landing-section section-enter px-5 py-13 sm:px-8 lg:py-16"><div className="mx-auto max-w-[660px] text-center"><span className="rounded-full bg-[#edf2ff] px-3 py-1.5 text-[11px] font-semibold text-primary">04 · {tx("Privacy", "Gizlilik")}</span><LockKeyhole className="mx-auto mt-6 size-6 text-primary" /><h2 className="mt-3 text-[clamp(2rem,3vw,2.9rem)] font-semibold tracking-[-.055em]">{tx("Private by default.", "Varsayılan olarak gizli.")}</h2><p className="mx-auto mt-3 max-w-[570px] text-[14px] leading-6 text-ink-soft">{tx("Calculations stay in your browser. No account or data upload.", "Hesaplamalar tarayıcında kalır. Hesap açma veya veri yükleme yok.")}</p><a href={sitePath("/privacy/")} className="mt-5 inline-flex items-center gap-1 text-[13px] font-semibold text-primary hover:underline">{tx("Read the privacy notice", "Gizlilik bildirimini oku")} <ArrowUpRight className="size-4" /></a></div></section>
+      <section id="privacy" className="landing-section section-enter px-5 py-13 sm:px-8 lg:py-16"><div className="mx-auto max-w-[660px] text-center"><span className="rounded-full bg-[#edf2ff] px-3 py-1.5 text-[11px] font-semibold text-primary">04 · {tx("Privacy", "Gizlilik")}</span><LockKeyhole className="mx-auto mt-6 size-6 text-primary" /><h2 className="mt-3 text-[clamp(2rem,3vw,2.9rem)] font-semibold tracking-[-.055em]">{tx("Private by default.", "Varsayılan olarak gizli.")}</h2><p className="mx-auto mt-3 max-w-[570px] text-[14px] leading-6 text-ink-soft">{tx("Your financial data stays in your browser. Scenarios are saved on this device only when you choose to save them.", "Finansal verilerin tarayıcında kalır. Senaryolar yalnızca sen kaydetmeyi seçersen bu cihaza kaydedilir.")}</p><a href={sitePath("/privacy/")} className="mt-5 inline-flex items-center gap-1 text-[13px] font-semibold text-primary hover:underline">{tx("Read the privacy notice", "Gizlilik bildirimini oku")} <ArrowUpRight className="size-4" /></a></div></section>
       <section id="terms" className="mx-auto max-w-[880px] px-5 pb-24 pt-5 text-center sm:px-8"><h2 className="text-[27px] font-semibold tracking-[-.045em]">{tx("See what your numbers say.", "Rakamlarının ne söylediğini gör.")}</h2><a href="#workspace" onClick={closeResults} className={cn(buttonVariants({ size: "lg" }), "mt-6 gap-2")}>{tx("Build a scenario", "Senaryo oluştur")} <ArrowRight className="size-4" /></a><p className="mt-4 text-[12px] text-muted-foreground">{tx("Educational scenarios, not financial or mortgage advice.", "Eğitim amaçlı senaryolar; finans veya kredi tavsiyesi değil.")}</p></section>
     </main>
     <PublicFooter />

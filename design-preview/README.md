@@ -13,7 +13,7 @@ npm run build
 
 Open `/` for the landing page, `/setup` for the guided scenario, and `/results` for live results. The former `/design/*` URLs remain aliases. The development server uses port 4174.
 
-Scenario inputs stay in browser session storage. Language and light/dark preference stay in local storage. The TÜİK rent reference is a bundled public JSON file that users choose whether to apply. No financial inputs are sent to a service.
+Active scenario inputs stay in browser session storage. Named scenarios use a single versioned local-storage store only after an explicit save, and later edits to an opened saved scenario update that local copy. Language and light/dark preference stay in separate local storage. The TÜİK rent reference is a bundled public JSON file that users choose whether to apply. The findings report is rendered in memory and uses browser Print / Save PDF. No financial inputs are sent to a service.
 
 The landing page's sample is fictional and labeled as such. The results route labels the initial sample as an example until a user creates or changes a scenario.
 
@@ -22,7 +22,7 @@ The landing page's sample is fictional and labeled as such. The results route la
 - `src/index.css` owns palette, type, radius, and semantic chart tokens.
 - `src/components/ui` contains shadcn-generated components (Radix Nova preset). Their Button/Input sizing has been lightly tailored to this product.
 - `src/components/product` composes comparison, chart, assumption rail, financial inputs, month picker, and shell from those primitives.
-- `src/lib/engine.ts` contains the ported financial calculator; `src/lib/product-context.tsx` owns scenario and preference state.
+- `src/lib/engine.ts` contains the ported financial calculator; `src/lib/product-context.tsx` owns scenario and preference state. `src/lib/saved-scenarios.ts` is the sole boundary for opt-in saved financial scenarios and keeps metadata separate from the canonical payload.
 - `src/pages` contains the three consumer screens; `src/main.tsx` selects a route by pathname.
 
 The currency/percentage input is custom because it needs locale-aware grouping, decimal parsing, and caret preservation that a generic text field does not provide. The month picker uses a shadcn ToggleGroup because it is a single-choice control rather than a native date input. Recharts is used through the shadcn Chart wrapper for the time series. The step indicator is custom because the project has no reusable stepper primitive; underlying action controls otherwise use shadcn components.

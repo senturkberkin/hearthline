@@ -9,4 +9,4 @@ npm test
 npm run build
 ```
 
-Visit <http://127.0.0.1:4174/> while the development server is running. The app supports English and Turkish, light and dark modes, guided scenario entry, and live calculated results. Financial inputs remain in this browser session.
+Visit <http://127.0.0.1:4174/> while the development server is running. The app supports English and Turkish, light and dark modes, guided scenario entry, and live calculated results. Active inputs remain in this browser session; named scenarios are stored in this browser profile only after an explicit save.
