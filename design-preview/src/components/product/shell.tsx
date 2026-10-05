@@ -44,7 +44,8 @@ export function BrandHeader({ mode = "public" }: { mode?: "public" | "app" }) {
 export function PublicFooter() {
   const { tx } = useProduct()
   return <footer className="bg-[#f5f7fd]">
-    <div className="mx-auto grid max-w-[1240px] gap-9 px-5 py-10 sm:px-8 md:grid-cols-[1fr_auto]">
+    <MakerInvitation />
+    <div className="mx-auto grid max-w-[1240px] gap-9 px-5 pb-8 pt-7 sm:px-8 sm:pb-10 md:grid-cols-[1fr_auto]">
       <div><Brand /><p className="mt-4 max-w-[350px] text-[13px] leading-5 text-muted-foreground">{tx("A private place to understand a housing decision. Your scenario, not our prediction.", "Konut kararını anlamak için özel bir alan. Senin senaryon, bizim tahminimiz değil.")}</p></div>
       <div className="flex flex-wrap items-start gap-x-6 gap-y-3 text-[13px] font-medium text-ink-soft"><a href={sitePath("/#methodology")} className="hover:text-primary">{tx("Methodology", "Yöntem")}</a><a href={sitePath("/privacy/")} className="hover:text-primary">{tx("Privacy", "Gizlilik")}</a><a href={sitePath("/terms/")} className="hover:text-primary">{tx("Terms", "Koşullar")}</a><a href={sitePath("/#workspace")} className="inline-flex items-center gap-1 text-primary hover:underline">{tx("Back to planner", "Planlayıcıya dön")} <ArrowRight className="size-3.5" /></a></div>
     </div>
@@ -54,15 +55,17 @@ export function PublicFooter() {
 
 export function MakerInvitation() {
   const { tx } = useProduct()
-  return <aside aria-labelledby="maker-invitation-title" className="bg-background px-5 pb-11 pt-3 sm:px-8 sm:pb-14">
-    <div className="mx-auto max-w-[780px] py-5 sm:py-7">
-      <p className="text-[12px] font-medium text-muted-foreground">{tx("From the maker", "Projeyi yapan kişiden")}</p>
-      <h2 id="maker-invitation-title" className="mt-3 text-[clamp(1.35rem,2.2vw,1.65rem)] font-semibold leading-tight tracking-[-.04em]">{tx("Building something?", "Sen de bir şeyler mi üretiyorsun?")}</h2>
-      <p className="mt-3 max-w-[680px] text-[14px] leading-6 text-ink-soft">{tx("Hearthline is an independent project. If you're working on tools, finance, housing, or just useful things on the internet, I'd like to hear from you.", "Hearthline bağımsız bir proje. Araçlar, finans, konut ya da internette işe yarayan başka şeyler üzerine çalışıyorsan tanışmak isterim.")}</p>
-      <p className="mt-3 max-w-[650px] text-[13px] leading-5 text-muted-foreground">{tx("Found something confusing, spotted a bug, or disagree with how Hearthline models something? Even better.", "Bir hata bulduysan, kafa karıştıran bir şey gördüysen ya da modelleme biçimine katılmıyorsan, onu da duymak isterim.")}</p>
-      <div className="mt-4 flex min-h-10 flex-wrap items-center gap-x-5 gap-y-1 text-[13px] font-semibold">
-        <a href="mailto:senturkberkin@gmail.com" className="inline-flex min-h-10 items-center text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring">{tx("Say hello →", "Merhaba de →")}</a>
-        <a href="https://github.com/senturkberkin/hearthline" target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center text-ink-soft hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring">{tx("GitHub →", "GitHub →")}</a>
+  return <aside aria-labelledby="maker-invitation-title" className="px-5 pb-7 pt-7 sm:px-8 sm:pb-8 sm:pt-8">
+    <div className="mx-auto max-w-[1240px]">
+      <div className="max-w-[780px]">
+        <p className="text-[12px] font-medium text-muted-foreground">{tx("From the maker", "Projeyi yapan kişiden")}</p>
+        <h2 id="maker-invitation-title" className="mt-3 text-[clamp(1.35rem,2.2vw,1.65rem)] font-semibold leading-tight tracking-[-.04em]">{tx("Building something?", "Sen de bir şeyler mi üretiyorsun?")}</h2>
+        <p className="mt-3 max-w-[680px] text-[14px] leading-6 text-ink-soft">{tx("Hearthline is an independent project. If you're working on tools, finance, housing, or just useful things on the internet, I'd like to hear from you.", "Hearthline bağımsız bir proje. Araçlar, finans, konut ya da internette işe yarayan başka şeyler üzerine çalışıyorsan tanışmak isterim.")}</p>
+        <p className="mt-3 max-w-[650px] text-[13px] leading-5 text-muted-foreground">{tx("Found something confusing, spotted a bug, or disagree with how Hearthline models something? Even better.", "Bir hata bulduysan, kafa karıştıran bir şey gördüysen ya da modelleme biçimine katılmıyorsan, onu da duymak isterim.")}</p>
+        <div className="mt-4 flex min-h-10 flex-wrap items-center gap-x-5 gap-y-1 text-[13px] font-semibold">
+          <a href="mailto:senturkberkin@gmail.com" className="inline-flex min-h-10 items-center text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring">{tx("Say hello →", "Merhaba de →")}</a>
+          <a href="https://github.com/senturkberkin/hearthline" target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center text-ink-soft hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring">{tx("GitHub →", "GitHub →")}</a>
+        </div>
       </div>
     </div>
   </aside>
