@@ -2,7 +2,7 @@ import * as React from "react"
 import { ArrowRight, ArrowUpRight, LockKeyhole, X } from "lucide-react"
 import { Dialog as DialogPrimitive } from "radix-ui"
 import { Button, buttonVariants } from "@/components/ui/button"
-import { BrandHeader, PublicFooter } from "@/components/product/shell"
+import { BrandHeader, MakerInvitation, PublicFooter } from "@/components/product/shell"
 import { SetupPage } from "@/pages/setup"
 import { ResultsPage } from "@/pages/results"
 import { ResultGuidance } from "@/components/product/result-guidance"
@@ -126,6 +126,7 @@ export function HomePage() {
       <section id="privacy" className="landing-section section-enter px-5 py-13 sm:px-8 lg:py-16"><div className="mx-auto max-w-[660px] text-center"><span className="rounded-full bg-[#edf2ff] px-3 py-1.5 text-[11px] font-semibold text-primary">04 · {tx("Privacy", "Gizlilik")}</span><LockKeyhole className="mx-auto mt-6 size-6 text-primary" /><h2 className="mt-3 text-[clamp(2rem,3vw,2.9rem)] font-semibold tracking-[-.055em]">{tx("Private by default.", "Varsayılan olarak gizli.")}</h2><p className="mx-auto mt-3 max-w-[570px] text-[14px] leading-6 text-ink-soft">{tx("Your financial data stays in your browser. Scenarios are saved on this device only when you choose to save them.", "Finansal verilerin tarayıcında kalır. Senaryolar yalnızca sen kaydetmeyi seçersen bu cihaza kaydedilir.")}</p><a href={sitePath("/privacy/")} className="mt-5 inline-flex items-center gap-1 text-[13px] font-semibold text-primary hover:underline">{tx("Read the privacy notice", "Gizlilik bildirimini oku")} <ArrowUpRight className="size-4" /></a></div></section>
       <section id="terms" className="mx-auto max-w-[880px] px-5 pb-24 pt-5 text-center sm:px-8"><h2 className="text-[27px] font-semibold tracking-[-.045em]">{tx("See what your numbers say.", "Rakamlarının ne söylediğini gör.")}</h2><a href="#workspace" onClick={closeResults} className={cn(buttonVariants({ size: "lg" }), "mt-6 gap-2")}>{tx("Build a scenario", "Senaryo oluştur")} <ArrowRight className="size-4" /></a><p className="mt-4 text-[12px] text-muted-foreground">{tx("Educational scenarios, not financial or mortgage advice.", "Eğitim amaçlı senaryolar; finans veya kredi tavsiyesi değil.")}</p></section>
     </main>
+    <MakerInvitation />
     <PublicFooter />
   </div>
 }
