@@ -12,18 +12,25 @@ export function buildReportModel(scenario: Scenario, language: ReportLanguage, n
   const projection = calculate(withPrincipal(scenario))
   const guidance = deriveResultGuidance(scenario, projection)
   const first = projection.rows[0]
+  const chart = Array.from({ length: Math.ceil(projection.rows.length / 12) }, (_, index) => {
+    const rows = projection.rows.slice(index * 12, index * 12 + 12)
+    const average = (key: "rentSurplus" | "buySurplus") => rows.reduce((total, row) => total + row[key], 0) / rows.length
+    return { year: index + 1, renting: average("rentSurplus"), buying: average("buySurplus") }
+  })
   const month = (value: number | null) => value === null ? tx("Not within this scenario", "Bu senaryoda yok") : tx(`Month ${value}`, `Ay ${value}`)
   const conclusion = {
-    "funding-gap": tx("The purchase needs more cash at signing.", "Alım için başlangıçta daha fazla nakit gerekiyor."),
-    "payment-exceeds-income": tx("The first mortgage payment exceeds income and support.", "İlk kredi taksiti gelir ve desteği aşıyor."),
+    "funding-gap": tx(`The purchase needs ${money(guidance.fundingGap)} more up front.`, `Alım için ${money(guidance.fundingGap)} daha gerekiyor.`),
+    "payment-exceeds-income": guidance.usesMonthlySupport
+      ? tx(`The first mortgage payment exceeds income and support by ${money(guidance.paymentGap)}.`, `İlk kredi taksiti gelir ve desteği ${money(guidance.paymentGap)} aşıyor.`)
+      : tx(`The first mortgage payment exceeds take-home income by ${money(guidance.paymentGap)}.`, `İlk kredi taksiti net geliri ${money(guidance.paymentGap)} aşıyor.`),
     "both-shortfall": tx("Both paths start with a monthly shortfall.", "İki seçenek de aylık açıkla başlıyor."),
-    "monthly-shortfall": tx("Buying starts with a monthly shortfall.", "Ev alımı aylık açıkla başlıyor."),
+    "monthly-shortfall": tx(`Buying starts ${money(Math.abs(first.buySurplus))} short in month one.`, `Ev alımında ilk ay ${money(Math.abs(first.buySurplus))} açık var.`),
     "support-cliff": tx("The buying budget turns negative when support ends.", "Destek bitince ev alma bütçesi eksiye dönüyor."),
     "support-dependent": tx("Monthly support prevents a starting shortfall.", "Aylık destek başlangıçtaki açığı kapatıyor."),
     "future-payment-exceeds-income": tx("A later mortgage payment exceeds income and support.", "Sonraki bir kredi taksiti gelir ve desteği aşıyor."),
     "future-shortfall": tx("The buying budget turns negative later.", "Ev alma bütçesi ileride eksiye dönüyor."),
     "reserve-breach": tx("The chosen cash reserve is not maintained.", "Ayrılan nakit birikim korunamıyor."),
-    "cash-positive": tx("Buying leaves positive monthly cash at the start.", "Ev alımında başlangıçta aylık nakit artıda kalıyor."),
+    "cash-positive": tx(`Buying leaves ${money(first.buySurplus)} in month one.`, `Ev alımında ilk ay ${money(first.buySurplus)} kalıyor.`),
   }[guidance.code]
 
   const starting: ReportItem[] = [
@@ -74,7 +81,7 @@ export function buildReportModel(scenario: Scenario, language: ReportLanguage, n
     name,
     date: new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(generatedAt),
     conclusion,
-    starting, buying, support, comparison, milestones, assumptions,
+    starting, buying, support, comparison, milestones, assumptions, chart,
     disclaimer: tx("This document shows the consequences of the inputs and future assumptions above. It is an educational planning scenario, not a forecast or financial, investment, mortgage, legal or tax advice.", "Bu belge, yukarıdaki girdilerin ve gelecek varsayımlarının hesaplanan sonuçlarını gösterir. Eğitim amaçlı bir planlama senaryosudur; tahmin veya finans, yatırım, kredi, hukuk ya da vergi tavsiyesi değildir."),
   }
 }

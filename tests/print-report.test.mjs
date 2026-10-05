@@ -50,11 +50,23 @@ test('R06 nonzero debt and chosen savings reserve appear in the findings',()=>{
   assert.ok(report.starting.some(item=>item.label==='Other monthly debt payments'));
   assert.ok(report.buying.some(item=>item.label==='Savings set aside'));
 });
+test('R07 printed trend is derived from the same monthly projection as the results',()=>{
+  const projection=engine.calculate(base);
+  const report=buildReportModel(base,'tr',null,date);
+  assert.equal(report.chart.length,base.horizon);
+  assert.equal(report.chart[0].year,1);
+  assert.equal(report.chart[0].renting,projection.rows.slice(0,12).reduce((sum,row)=>sum+row.rentSurplus,0)/12);
+  assert.equal(report.chart[0].buying,projection.rows.slice(0,12).reduce((sum,row)=>sum+row.buySurplus,0)/12);
+  const cheaper=engine.withPrincipal({...base,propertyPrice:base.propertyPrice*.9});
+  assert.notEqual(buildReportModel(cheaper,'tr',null,date).chart[0].buying,report.chart[0].buying);
+  assert.match(report.conclusion,/₺/);
+});
 test('R05 print composition is separate from app controls and has A4 rules',()=>{
   const report=readFileSync(new URL('../design-preview/src/pages/print-report.tsx',import.meta.url),'utf8');
   const css=readFileSync(new URL('../design-preview/src/index.css',import.meta.url),'utf8');
   assert.match(report,/className="report-page/);
   assert.match(report,/window\.print\(\)/);
+  assert.match(report,/<CashChart report=\{report\}/);
   assert.doesNotMatch(report,/ScenarioControlRail|CashFlowTimeline|ResultActions/);
   assert.match(css,/@page \{ size: A4 portrait/);
   assert.match(css,/\.report-actions \{ display: none !important/);

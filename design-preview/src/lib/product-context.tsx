@@ -75,7 +75,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.dataset.theme = settings.theme
     document.documentElement.classList.toggle("dark", settings.theme === "dark")
     document.title = "Hearthline - Konut Kredisi Simülasyonu"
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", settings.theme === "dark" ? "#0a0a0a" : "#ffffff")
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", settings.theme === "dark" ? "#191b1e" : "#ffffff")
     try { localStorage.setItem(settingsKey, JSON.stringify(settings)) } catch { /* Keep settings in memory. */ }
   }, [settings])
   React.useEffect(() => { try { sessionStorage.setItem(scenarioKey, JSON.stringify(scenario)) } catch { /* Keep scenario in memory. */ } }, [scenario])
