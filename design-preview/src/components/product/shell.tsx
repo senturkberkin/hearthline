@@ -55,8 +55,8 @@ export function PublicFooter() {
 
 export function MakerInvitation() {
   const { tx } = useProduct()
-  return <aside aria-labelledby="maker-invitation-title" className="px-5 pb-7 pt-7 sm:px-8 sm:pb-8 sm:pt-8">
-    <div className="mx-auto max-w-[1240px]">
+  return <aside aria-labelledby="maker-invitation-title" className="pb-7 pt-7 sm:pb-8 sm:pt-8">
+    <div className="mx-auto max-w-[1240px] px-5 sm:px-8">
       <div className="max-w-[780px]">
         <p className="text-[12px] font-medium text-muted-foreground">{tx("From the maker", "Projeyi yapan kişiden")}</p>
         <h2 id="maker-invitation-title" className="mt-3 text-[clamp(1.35rem,2.2vw,1.65rem)] font-semibold leading-tight tracking-[-.04em]">{tx("Building something?", "Sen de bir şeyler mi üretiyorsun?")}</h2>
