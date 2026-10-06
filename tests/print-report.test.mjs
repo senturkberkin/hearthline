@@ -78,6 +78,7 @@ test('R08 printed report follows the selected light or dark theme',()=>{
   assert.match(css,/\.report-page \{[\s\S]*?--report-page: #fff/);
   assert.match(css,/\.report-page \{ width: 100% !important;[^\n]*background: var\(--report-page\) !important/);
   assert.match(css,/html\.dark, html\.dark body, html\.dark #root, html\.dark \.report-shell/);
+  assert.match(css,/\.dark \.report-actions \[data-variant="outline"\] \{ color: #f4f4f2/);
   assert.doesNotMatch(css,/\.dark \.report-page \{ background-color: #fff !important/);
   assert.match(report,/hearthline-icon-dark\.svg/);
   assert.match(report,/stroke="var\(--report-buy\)"/);

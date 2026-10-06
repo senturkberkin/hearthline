@@ -158,7 +158,9 @@
   --report-buy: #214b86;
   padding: 38px 46px 42px; color: var(--report-ink); background: var(--report-page); color-scheme: light; box-shadow: 0 18px 55px -30px #19283d70;
 }
-.dark .report-shell { background: #171819; }
+.dark .report-shell { color: #f4f4f2; background: #171819; }
+.dark .report-actions [data-variant="outline"] { color: #f4f4f2; border-color: #555658; background: #292a2c; }
+.dark .report-actions [data-variant="outline"]:hover { color: #fff; background: #343537; }
 .dark .report-page {
   --report-page: #222324;
   --report-ink: #f4f4f2;
