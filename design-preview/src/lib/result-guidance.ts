@@ -3,6 +3,30 @@ import { calculate, effectiveSupportMonths, withPrincipal, type Projection, type
 export type ResultCode = "funding-gap" | "payment-exceeds-income" | "both-shortfall" | "monthly-shortfall" | "support-cliff" | "support-dependent" | "future-payment-exceeds-income" | "future-shortfall" | "reserve-breach" | "cash-positive"
 export type TrendCode = "crosses" | "narrows" | "widens" | "stays-behind" | "buy-ahead" | "rent-overtakes" | "even"
 
+function minimumWorkingValue(start: number, end: number, works: (value: number) => boolean) {
+  if (works(start)) return Math.ceil(start)
+  if (end <= start || !works(end)) return null
+  let low = start, high = end
+  for (let step = 0; step < 48; step++) {
+    const middle = (low + high) / 2
+    if (works(middle)) high = middle
+    else low = middle
+  }
+  return Math.ceil(high)
+}
+
+function maximumWorkingValue(start: number, end: number, works: (value: number) => boolean) {
+  if (works(end)) return Math.floor(end)
+  if (end <= start || !works(start)) return null
+  let low = start, high = end
+  for (let step = 0; step < 48; step++) {
+    const middle = (low + high) / 2
+    if (works(middle)) low = middle
+    else high = middle
+  }
+  return Math.floor(low)
+}
+
 // These are observations about the supplied scenario, not lending or investment advice.
 export function deriveResultGuidance(scenario: Scenario, projection: Projection) {
   const rows = projection.rows
@@ -39,6 +63,19 @@ export function deriveResultGuidance(scenario: Scenario, projection: Projection)
   const upfrontSupportMonthlyGain = scenario.upfrontSupport > 0
     ? calculate(withPrincipal({ ...scenario, upfrontSupport: 0 })).payment - projection.payment
     : 0
+  const maximumDownPayment = scenario.downPayment + extraDownPayment
+  const downPaymentToBalance = first.buySurplus < 0 ? minimumWorkingValue(
+    scenario.downPayment,
+    maximumDownPayment,
+    downPayment => calculate(withPrincipal({ ...scenario, downPayment })).rows[0].buySurplus >= 0,
+  ) : scenario.downPayment
+  const minimumPrice = Math.max(1, scenario.downPayment + scenario.upfrontSupport)
+  const homePriceToBalance = first.buySurplus < 0 ? maximumWorkingValue(
+    minimumPrice,
+    scenario.propertyPrice,
+    propertyPrice => calculate(withPrincipal({ ...scenario, propertyPrice })).rows[0].buySurplus >= 0,
+  ) : scenario.propertyPrice
+  const incomeToBalance = Math.ceil(scenario.income + Math.max(0, -first.buySurplus))
 
   return {
     code, trend, fundingGap, paymentGap, supportMonths, firstDeficitMonth: firstDeficit ? firstDeficit.m + 1 : null,
@@ -60,6 +97,12 @@ export function deriveResultGuidance(scenario: Scenario, projection: Projection)
       cashAfterPurchase: cashAfterPurchase - extraDownPayment,
     },
     cashAfterPurchase,
+    downPaymentToBalance,
+    additionalDownPaymentToBalance: downPaymentToBalance === null ? null : Math.max(0, downPaymentToBalance - scenario.downPayment),
+    homePriceToBalance,
+    homePriceReductionToBalance: homePriceToBalance === null ? null : Math.max(0, scenario.propertyPrice - homePriceToBalance),
+    incomeToBalance,
+    incomeIncreaseToBalance: Math.max(0, incomeToBalance - scenario.income),
     upfrontSupportMonthlyGain,
     usesUpfrontSupport: scenario.upfrontSupport > 0,
     usesMonthlySupport: first.support > 0,

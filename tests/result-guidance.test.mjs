@@ -166,3 +166,19 @@ test('G26 a later mortgage-payment gap has its own result', () => {
   assert.equal(guidance.futurePaymentGapMonth,13);
   assert.ok(guidance.futurePaymentGapAmount > 0);
 });
+test('G27 guidance calculates the smallest reserve-safe down payment that balances month one', () => {
+  const {scenario,guidance}=result({income:95000,savings:800000,downPayment:300000,upfrontSupport:250000});
+  assert.ok(guidance.additionalDownPaymentToBalance > 0);
+  assert.ok(guidance.downPaymentToBalance <= scenario.savings-scenario.reserve);
+  const balanced=engine.withPrincipal({...scenario,downPayment:guidance.downPaymentToBalance});
+  assert.ok(engine.calculate(balanced).rows[0].buySurplus >= 0);
+  const oneLess=engine.withPrincipal({...scenario,downPayment:guidance.downPaymentToBalance-1});
+  assert.ok(engine.calculate(oneLess).rows[0].buySurplus < 0);
+});
+test('G28 guidance exposes concrete price and income thresholds without claiming they are approvals', () => {
+  const {scenario,guidance}=result({income:75000,savings:600000,downPayment:500000});
+  assert.ok(guidance.homePriceToBalance < scenario.propertyPrice);
+  assert.ok(guidance.incomeToBalance > scenario.income);
+  assert.ok(engine.calculate(engine.withPrincipal({...scenario,propertyPrice:guidance.homePriceToBalance})).rows[0].buySurplus >= 0);
+  assert.equal(guidance.incomeIncreaseToBalance,guidance.incomeToBalance-scenario.income);
+});
