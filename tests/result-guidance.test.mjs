@@ -182,3 +182,12 @@ test('G28 guidance exposes concrete price and income thresholds without claiming
   assert.ok(engine.calculate(engine.withPrincipal({...scenario,propertyPrice:guidance.homePriceToBalance})).rows[0].buySurplus >= 0);
   assert.equal(guidance.incomeIncreaseToBalance,guidance.incomeToBalance-scenario.income);
 });
+test('G29 summary preview is static while full-page guidance remains interactive', () => {
+  const home=readFileSync(new URL('../design-preview/src/pages/home.tsx',import.meta.url),'utf8');
+  const guidance=readFileSync(new URL('../design-preview/src/components/product/result-guidance.tsx',import.meta.url),'utf8');
+  const results=readFileSync(new URL('../design-preview/src/pages/results.tsx',import.meta.url),'utf8');
+  assert.match(home,/headingId="result-dialog-heading" interactive=\{false\}/);
+  assert.match(guidance,/interactive = true/);
+  assert.match(guidance,/interactive\s*\n\s*\? <button/);
+  assert.match(results,/<ResultGuidance scenario=\{scenario\} projection=\{projection\} \/>/);
+});

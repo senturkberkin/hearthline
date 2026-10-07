@@ -88,7 +88,7 @@ export function HomePage() {
               <DialogPrimitive.Close asChild><Button type="button" variant="ghost" size="icon" className="size-10 rounded-full" aria-label={tx("Close summary and view full results", "Özeti kapat ve tüm sonuçları gör")}><X className="size-4" /></Button></DialogPrimitive.Close>
             </div>
             <div className="overflow-y-auto overscroll-contain px-5 pb-6 sm:px-9 sm:pb-8">
-              {projection && <ResultGuidance scenario={scenario} projection={projection} headingId="result-dialog-heading" />}
+              {projection && <ResultGuidance scenario={scenario} projection={projection} headingId="result-dialog-heading" interactive={false} />}
               <DialogPrimitive.Close asChild><Button type="button" className="h-11 w-full rounded-full sm:w-auto">{tx("View full results", "Tüm sonuçları gör")} <ArrowRight className="size-4" /></Button></DialogPrimitive.Close>
             </div>
           </DialogPrimitive.Content>

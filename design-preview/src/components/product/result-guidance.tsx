@@ -1,10 +1,10 @@
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import { ArrowRight, ChevronDown, Clock3, Target, WalletCards } from "lucide-react"
 import { useProduct } from "@/lib/product-context"
 import { deriveResultGuidance } from "@/lib/result-guidance"
 import { calculate, withPrincipal, type Projection, type Scenario } from "@/lib/engine"
 
-export function ResultGuidance({ scenario, projection, headingId = "result-guidance-title" }: { scenario: Scenario; projection: Projection; headingId?: string }) {
+export function ResultGuidance({ scenario, projection, headingId = "result-guidance-title", interactive = true }: { scenario: Scenario; projection: Projection; headingId?: string; interactive?: boolean }) {
   const { tx, money } = useProduct()
   const [expanded, setExpanded] = useState<"today" | "time" | "next" | null>(null)
   const result = deriveResultGuidance(scenario, projection)
@@ -119,6 +119,9 @@ export function ResultGuidance({ scenario, projection, headingId = "result-guida
 
   const toggle = (card: "today" | "time" | "next") => setExpanded(current => current === card ? null : card)
   const cardFocus = "text-left transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_-30px_rgba(20,64,118,.55)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-white dark:focus-visible:ring-offset-background"
+  const CardContent = ({ card, controls, className, children }: { card: "today" | "time" | "next"; controls: string; className: string; children: ReactNode }) => interactive
+    ? <button type="button" aria-expanded={expanded === card} aria-controls={controls} onClick={() => toggle(card)} className={`${className} ${cardFocus}`}>{children}</button>
+    : <div className={`${className} text-left`}>{children}</div>
   const whyRows = <div className="space-y-2 text-[12px] leading-5 text-ink-soft">
     <p>{tx("The comparison uses your income, rent, regular expenses, debts, mortgage and support assumptions. It describes monthly cash flow, not which option builds more wealth.", "Karşılaştırma; gelir, kira, düzenli gider, borç, kredi ve destek varsayımlarını kullanır. Aylık bütçeyi gösterir; hangi seçeneğin daha fazla servet oluşturduğunu söylemez.")}</p>
     {result.usesUpfrontSupport && <p>{tx(`${money(scenario.upfrontSupport)} of one-time support reduces the loan and lowers the modeled payment by ${money(result.upfrontSupportMonthlyGain)} a month.`, `${money(scenario.upfrontSupport)} peşin destek kredi tutarını azaltır ve modelde aylık taksiti ${money(result.upfrontSupportMonthlyGain)} düşürür.`)}</p>}
@@ -135,27 +138,27 @@ export function ResultGuidance({ scenario, projection, headingId = "result-guida
     <div className="mt-6 grid gap-3 sm:grid-cols-[1.15fr_.85fr]">
       <div className={`relative overflow-hidden rounded-[22px] bg-[#edf4ff] sm:row-span-2 dark:bg-[#272b30] ${expanded === "today" ? "ring-1 ring-primary/20 dark:ring-white/15" : ""}`}>
         <div className="pointer-events-none absolute -right-14 -top-16 size-44 rounded-full bg-gradient-to-br from-white/80 via-white/35 to-primary/10 blur-2xl dark:from-white/10 dark:via-white/[.03] dark:to-transparent" />
-        <button type="button" aria-expanded={expanded === "today"} aria-controls="result-today-detail" onClick={() => toggle("today")} className={`relative block w-full p-5 sm:p-6 ${cardFocus}`}>
-          <div className="flex items-center justify-between"><WalletCards aria-hidden="true" className="size-5 text-primary dark:text-white" /><ChevronDown aria-hidden="true" className={`size-4 text-muted-foreground transition-transform ${expanded === "today" ? "rotate-180" : ""}`} /></div>
+        <CardContent card="today" controls="result-today-detail" className="relative block w-full p-5 sm:p-6">
+          <div className="flex items-center justify-between"><WalletCards aria-hidden="true" className="size-5 text-primary dark:text-white" />{interactive && <ChevronDown aria-hidden="true" className={`size-4 text-muted-foreground transition-transform ${expanded === "today" ? "rotate-180" : ""}`} />}</div>
           <p className="mt-7 text-[11px] font-semibold text-muted-foreground">{tx("Today", "Bugün")}</p><strong className={`mt-2 block text-[clamp(2.45rem,6vw,4.2rem)] leading-none font-semibold tracking-[-.065em] tabular-nums ${todayNegative ? "text-destructive" : ""}`}>{money(todayValue)}</strong><p className="mt-2 text-[13px] font-semibold">{todayLabel}</p><p className="mt-4 max-w-[430px] text-[12px] leading-5 text-ink-soft">{todayDetail}</p><div className="mt-6 inline-flex rounded-full bg-white/80 px-3 py-2 text-[11px] font-medium text-ink-soft dark:bg-black/20">{comparisonDetail}</div>
-        </button>
-        {expanded === "today" && <div id="result-today-detail" className="relative mx-5 border-t border-primary/10 pb-5 pt-4 sm:mx-6 sm:pb-6 dark:border-white/10"><p className="mb-2 text-[11px] font-semibold text-foreground">{tx("Why this result?", "Bu sonuç neden çıktı?")}</p>{whyRows}</div>}
+        </CardContent>
+        {interactive && expanded === "today" && <div id="result-today-detail" className="relative mx-5 border-t border-primary/10 pb-5 pt-4 sm:mx-6 sm:pb-6 dark:border-white/10"><p className="mb-2 text-[11px] font-semibold text-foreground">{tx("Why this result?", "Bu sonuç neden çıktı?")}</p>{whyRows}</div>}
       </div>
 
       <div className={`rounded-[18px] bg-[#f5f7fa] dark:bg-[#22262a] ${expanded === "time" ? "ring-1 ring-primary/20 dark:ring-white/15" : ""}`}>
-        <button type="button" aria-expanded={expanded === "time"} aria-controls="result-time-detail" onClick={() => toggle("time")} className={`block w-full p-5 ${cardFocus}`}>
-          <div className="flex items-center justify-between"><div className="flex items-center gap-2 text-muted-foreground"><Clock3 aria-hidden="true" className="size-4" /><span className="text-[11px] font-semibold">{tx("Over time", "Zaman içinde")}</span></div><ChevronDown aria-hidden="true" className={`size-4 text-muted-foreground transition-transform ${expanded === "time" ? "rotate-180" : ""}`} /></div>
+        <CardContent card="time" controls="result-time-detail" className="block w-full p-5">
+          <div className="flex items-center justify-between"><div className="flex items-center gap-2 text-muted-foreground"><Clock3 aria-hidden="true" className="size-4" /><span className="text-[11px] font-semibold">{tx("Over time", "Zaman içinde")}</span></div>{interactive && <ChevronDown aria-hidden="true" className={`size-4 text-muted-foreground transition-transform ${expanded === "time" ? "rotate-180" : ""}`} />}</div>
           <div className="mt-4 flex items-start gap-3"><span className="mt-1.5 size-2 shrink-0 rounded-full bg-primary ring-4 ring-primary/10 dark:bg-white dark:ring-white/10" /><div><p className="text-[14px] font-semibold leading-5">{timeTitle}</p><p className="mt-1.5 text-[11px] leading-5 text-ink-soft">{timeDetail}</p></div></div>
-        </button>
-        {expanded === "time" && <div id="result-time-detail" className="mx-5 border-t border-border/70 pb-5 pt-4"><ol className="grid gap-3 text-[11px] leading-5"><li><span className="font-semibold">{tx("Now", "Şimdi")}</span><p className="text-ink-soft">{todayDetail}</p></li><li><span className="font-semibold">{tx("Turning point", "Dönüm noktası")}</span><p className="text-ink-soft">{timeTitle}</p></li><li><span className="font-semibold">{tx("Compared with renting", "Kirayla karşılaştırınca")}</span><p className="text-ink-soft">{comparisonDetail}</p></li></ol></div>}
+        </CardContent>
+        {interactive && expanded === "time" && <div id="result-time-detail" className="mx-5 border-t border-border/70 pb-5 pt-4"><ol className="grid gap-3 text-[11px] leading-5"><li><span className="font-semibold">{tx("Now", "Şimdi")}</span><p className="text-ink-soft">{todayDetail}</p></li><li><span className="font-semibold">{tx("Turning point", "Dönüm noktası")}</span><p className="text-ink-soft">{timeTitle}</p></li><li><span className="font-semibold">{tx("Compared with renting", "Kirayla karşılaştırınca")}</span><p className="text-ink-soft">{comparisonDetail}</p></li></ol></div>}
       </div>
 
       <div className={`rounded-[18px] bg-[#e5effd] dark:bg-[#30353a] ${expanded === "next" ? "ring-1 ring-primary/20 dark:ring-white/15" : ""}`}>
-        <button type="button" aria-expanded={expanded === "next"} aria-controls="result-next-detail" onClick={() => toggle("next")} className={`block w-full p-5 ${cardFocus}`}>
-          <div className="flex items-center justify-between"><div className="flex items-center gap-2 text-primary dark:text-white"><Target aria-hidden="true" className="size-4" /><span className="text-[11px] font-semibold">{tx("Most useful next test", "En faydalı sonraki deneme")}</span></div><ChevronDown aria-hidden="true" className={`size-4 text-primary transition-transform dark:text-white ${expanded === "next" ? "rotate-180" : ""}`} /></div>
-          <p className="mt-4 text-[15px] font-semibold leading-5">{nextTitle}</p><p className="mt-1.5 text-[11px] leading-5 text-ink-soft">{nextDetail}</p><span className="mt-4 inline-flex size-7 items-center justify-center rounded-full bg-primary text-primary-foreground dark:bg-white dark:text-[#191b1e]"><ArrowRight aria-hidden="true" className="size-3.5" /></span>
-        </button>
-        {expanded === "next" && <div id="result-next-detail" className="mx-5 border-t border-primary/10 pb-5 pt-4 dark:border-white/10"><p className="text-[11px] font-semibold">{tx("What changes?", "Ne değişir?")}</p><div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3"><div><span className="block text-[10px] text-ink-soft">{exampleBeforeLabel}</span><strong className="mt-1 block text-[15px] tabular-nums">{exampleBeforeValue}</strong></div><ArrowRight aria-hidden="true" className="size-4 text-primary dark:text-white" /><div><span className="block text-[10px] text-ink-soft">{exampleAfterLabel}</span><strong className="mt-1 block text-[15px] tabular-nums">{exampleAfterValue}</strong></div></div><p className="mt-3 text-[10px] leading-4 text-ink-soft">{exampleNote}</p></div>}
+        <CardContent card="next" controls="result-next-detail" className="block w-full p-5">
+          <div className="flex items-center justify-between"><div className="flex items-center gap-2 text-primary dark:text-white"><Target aria-hidden="true" className="size-4" /><span className="text-[11px] font-semibold">{tx("Most useful next test", "En faydalı sonraki deneme")}</span></div>{interactive && <ChevronDown aria-hidden="true" className={`size-4 text-primary transition-transform dark:text-white ${expanded === "next" ? "rotate-180" : ""}`} />}</div>
+          <p className="mt-4 text-[15px] font-semibold leading-5">{nextTitle}</p><p className="mt-1.5 text-[11px] leading-5 text-ink-soft">{nextDetail}</p>{interactive && <span className="mt-4 inline-flex size-7 items-center justify-center rounded-full bg-primary text-primary-foreground dark:bg-white dark:text-[#191b1e]"><ArrowRight aria-hidden="true" className="size-3.5" /></span>}
+        </CardContent>
+        {interactive && expanded === "next" && <div id="result-next-detail" className="mx-5 border-t border-primary/10 pb-5 pt-4 dark:border-white/10"><p className="text-[11px] font-semibold">{tx("What changes?", "Ne değişir?")}</p><div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3"><div><span className="block text-[10px] text-ink-soft">{exampleBeforeLabel}</span><strong className="mt-1 block text-[15px] tabular-nums">{exampleBeforeValue}</strong></div><ArrowRight aria-hidden="true" className="size-4 text-primary dark:text-white" /><div><span className="block text-[10px] text-ink-soft">{exampleAfterLabel}</span><strong className="mt-1 block text-[15px] tabular-nums">{exampleAfterValue}</strong></div></div><p className="mt-3 text-[10px] leading-4 text-ink-soft">{exampleNote}</p></div>}
       </div>
     </div>
   </section>
