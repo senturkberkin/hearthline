@@ -59,7 +59,8 @@ test('R07 printed trend is derived from the same monthly projection as the resul
   assert.equal(report.chart[0].buying,projection.rows.slice(0,12).reduce((sum,row)=>sum+row.buySurplus,0)/12);
   const cheaper=engine.withPrincipal({...base,propertyPrice:base.propertyPrice*.9});
   assert.notEqual(buildReportModel(cheaper,'tr',null,date).chart[0].buying,report.chart[0].buying);
-  assert.match(report.conclusion,/₺/);
+  assert.match(report.today.value,/₺/);
+  assert.ok(report.overTime.title && report.nextTest.title);
 });
 test('R05 print composition is separate from app controls and has A4 rules',()=>{
   const report=readFileSync(new URL('../design-preview/src/pages/print-report.tsx',import.meta.url),'utf8');
@@ -82,4 +83,16 @@ test('R08 printed report follows the selected light or dark theme',()=>{
   assert.doesNotMatch(css,/\.dark \.report-page \{ background-color: #fff !important/);
   assert.match(report,/hearthline-icon-dark\.svg/);
   assert.match(report,/stroke="var\(--report-buy\)"/);
+});
+test('R09 printed report uses the same simplified three-part result hierarchy',()=>{
+  const source=readFileSync(new URL('../design-preview/src/pages/print-report.tsx',import.meta.url),'utf8');
+  const css=readFileSync(new URL('../design-preview/src/index.css',import.meta.url),'utf8');
+  const model=buildReportModel(base,'tr',null,date);
+  assert.ok(model.today.value && model.today.label && model.today.detail);
+  assert.ok(model.overTime.title && model.overTime.detail);
+  assert.ok(model.nextTest.title && model.nextTest.detail);
+  assert.match(source,/report-guidance-today/);
+  assert.match(source,/report\.overTime\.title/);
+  assert.match(source,/report\.nextTest\.title/);
+  assert.match(css,/--report-negative: #e88692/);
 });

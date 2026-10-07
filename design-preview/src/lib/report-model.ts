@@ -18,20 +18,60 @@ export function buildReportModel(scenario: Scenario, language: ReportLanguage, n
     return { year: index + 1, renting: average("rentSurplus"), buying: average("buySurplus") }
   })
   const month = (value: number | null) => value === null ? tx("Not within this scenario", "Bu senaryoda yok") : tx(`Month ${value}`, `Ay ${value}`)
+  const monthInline = (value: number) => tx(`month ${value}`, `${value}. ay`)
   const conclusion = {
-    "funding-gap": tx(`The purchase needs ${money(guidance.fundingGap)} more up front.`, `Alım için ${money(guidance.fundingGap)} daha gerekiyor.`),
-    "payment-exceeds-income": guidance.usesMonthlySupport
-      ? tx(`The first mortgage payment exceeds income and support by ${money(guidance.paymentGap)}.`, `İlk kredi taksiti gelir ve desteği ${money(guidance.paymentGap)} aşıyor.`)
-      : tx(`The first mortgage payment exceeds take-home income by ${money(guidance.paymentGap)}.`, `İlk kredi taksiti net geliri ${money(guidance.paymentGap)} aşıyor.`),
-    "both-shortfall": tx("Both paths start with a monthly shortfall.", "İki seçenek de aylık açıkla başlıyor."),
-    "monthly-shortfall": tx(`Buying starts ${money(Math.abs(first.buySurplus))} short in month one.`, `Ev alımında ilk ay ${money(Math.abs(first.buySurplus))} açık var.`),
-    "support-cliff": tx("The buying budget turns negative when support ends.", "Destek bitince ev alma bütçesi eksiye dönüyor."),
-    "support-dependent": tx("Monthly support prevents a starting shortfall.", "Aylık destek başlangıçtaki açığı kapatıyor."),
-    "future-payment-exceeds-income": tx("A later mortgage payment exceeds income and support.", "Sonraki bir kredi taksiti gelir ve desteği aşıyor."),
-    "future-shortfall": tx("The buying budget turns negative later.", "Ev alma bütçesi ileride eksiye dönüyor."),
-    "reserve-breach": tx("The chosen cash reserve is not maintained.", "Ayrılan nakit birikim korunamıyor."),
-    "cash-positive": tx(`Buying leaves ${money(first.buySurplus)} in month one.`, `Ev alımında ilk ay ${money(first.buySurplus)} kalıyor.`),
+    "funding-gap": tx("There is not enough cash to complete this purchase.", "Bu alımı tamamlamak için başlangıçtaki para yeterli değil."),
+    "payment-exceeds-income": tx("This home does not fit your monthly budget today.", "Bu ev şu an aylık bütçene uygun değil."),
+    "both-shortfall": tx("Both options stretch your monthly budget today.", "Şu an iki seçenek de aylık bütçeni zorluyor."),
+    "monthly-shortfall": tx("This home does not fit your monthly budget today.", "Bu ev şu an aylık bütçene uygun değil."),
+    "support-cliff": tx("This home stops fitting your budget when support ends.", "Destek sona erdiğinde bu ev aylık bütçene uymuyor."),
+    "support-dependent": tx("This home fits your budget only with monthly support.", "Bu ev şu an yalnızca aylık destekle bütçene uyuyor."),
+    "future-payment-exceeds-income": tx("This home may outgrow your budget later.", "Bu ev ilerleyen dönemde aylık bütçeni aşabilir."),
+    "future-shortfall": tx("This home fits today, but the budget becomes tight later.", "Bu ev bugün bütçene uyuyor; ilerleyen dönemde giderler gelirini aşıyor."),
+    "reserve-breach": tx("This purchase uses savings you wanted to keep aside.", "Bu alım, kenarda tutmak istediğin birikimi kullanıyor."),
+    "cash-positive": tx("This home fits your monthly budget in this scenario.", "Bu ev bu senaryoda aylık bütçene uyuyor."),
   }[guidance.code]
+
+  const todayNegative = guidance.code === "funding-gap" || guidance.monthOneBuyCash < 0
+  const todayValue = guidance.code === "funding-gap" ? guidance.fundingGap : Math.abs(guidance.monthOneBuyCash)
+  const today = {
+    value: money(todayValue),
+    negative: todayNegative,
+    label: guidance.code === "funding-gap"
+      ? tx("more needed at purchase", "alım sırasında ek gerekiyor")
+      : guidance.monthOneBuyCash < 0
+        ? tx("missing from the monthly budget", "aylık bütçede eksik kalıyor")
+        : tx("left after monthly expenses", "aylık giderlerden sonra kalıyor"),
+    detail: guidance.code === "funding-gap"
+      ? tx(`The purchase needs ${money(projection.initialBuyCash)} up front; available savings are ${money(scenario.savings)}.`, `Alım sırasında ${money(projection.initialBuyCash)} gerekiyor; kullanılabilir birikim ${money(scenario.savings)}.`)
+      : guidance.monthOneBuyCash < 0
+        ? tx(`Buying expenses exceed income and support by ${money(Math.abs(guidance.monthOneBuyCash))} in month one.`, `İlk ay ev alımındaki giderler, gelir ve desteği ${money(Math.abs(guidance.monthOneBuyCash))} aşıyor.`)
+        : tx(`After housing, regular expenses and debt, ${money(guidance.monthOneBuyCash)} remains in month one.`, `İlk ay konut, düzenli giderler ve borçlar ödendikten sonra ${money(guidance.monthOneBuyCash)} kalıyor.`),
+    comparison: guidance.monthOneGap < 0
+      ? tx(`Buying leaves ${money(Math.abs(guidance.monthOneGap))} less than renting in month one.`, `İlk ay ev alımında kiraya göre ${money(Math.abs(guidance.monthOneGap))} daha az kalıyor.`)
+      : guidance.monthOneGap > 0
+        ? tx(`Buying leaves ${money(guidance.monthOneGap)} more than renting in month one.`, `İlk ay ev alımında kiraya göre ${money(guidance.monthOneGap)} daha fazla kalıyor.`)
+        : tx("Both options leave the same amount in month one.", "İlk ay iki seçenekte de aynı tutar kalıyor."),
+  }
+  const overTime = guidance.supportCliffMonth
+    ? { title: tx(`Support ends in ${monthInline(guidance.supportCliffMonth)}`, `Destek ${monthInline(guidance.supportCliffMonth)} sona eriyor`), detail: tx("The result depends on support continuing until that point.", "Bu tarihe kadarki sonuç, desteğin devam etmesine bağlı.") }
+    : guidance.recoveryMonth && guidance.monthOneBuyCash < 0
+      ? { title: tx(`The monthly budget balances in ${monthInline(guidance.recoveryMonth)}`, `Aylık bütçen ${monthInline(guidance.recoveryMonth)} dengelenir`), detail: tx("This uses the income and expense changes entered; it is not a market forecast.", "Bu tarih, girilen gelir ve gider değişimlerine dayanır; piyasa tahmini değildir.") }
+      : guidance.firstDeficitMonth && guidance.firstDeficitMonth > 1
+        ? { title: tx(`The budget becomes tight in ${monthInline(guidance.firstDeficitMonth)}`, `Giderler ${monthInline(guidance.firstDeficitMonth)} geliri aşmaya başlar`), detail: tx("The later result follows the growth assumptions entered.", "İlerleyen dönemdeki sonuç, girilen değişim oranlarına dayanır.") }
+        : guidance.crossoverMonth
+          ? { title: tx(`Buying moves ahead in ${monthInline(guidance.crossoverMonth)}`, `Ev alımında ${monthInline(guidance.crossoverMonth)} daha fazla para kalmaya başlar`), detail: tx("From then on, buying leaves more monthly cash than renting in this model.", "Bu tarihten sonra modelde ev alımında kiraya göre aylık olarak daha fazla para kalır.") }
+          : guidance.monthOneBuyCash < 0
+            ? { title: tx(`It does not balance within ${scenario.horizon} years`, `${scenario.horizon} yıl içinde aylık bütçe dengelenmiyor`), detail: tx("The monthly gap remains throughout the selected period.", "Seçilen dönem boyunca aylık giderler gelirden yüksek kalır.") }
+            : { title: tx("The monthly budget starts balanced", "Aylık bütçen ilk aydan dengede"), detail: tx("No monthly gap appears at the beginning of this scenario.", "Bu senaryonun başlangıcında aylık bütçede eksik oluşmuyor.") }
+
+  let nextTest: { title: string; detail: string }
+  if (guidance.code === "funding-gap") nextTest = { title: tx(`Add ${money(guidance.fundingGap)} to the purchase funds`, `Alım için ${money(guidance.fundingGap)} daha gerekiyor`), detail: tx("Alternatively, reduce the down payment or other up-front purchase costs.", "Diğer seçenek, peşinatı veya alım sırasındaki diğer giderleri azaltmak.") }
+  else if (guidance.additionalDownPaymentToBalance && guidance.downPaymentToBalance) nextTest = { title: tx(`Raise the down payment to ${money(guidance.downPaymentToBalance)}`, `Peşinatı ${money(guidance.downPaymentToBalance)} seviyesine çıkar`), detail: tx(`That is ${money(guidance.additionalDownPaymentToBalance)} more and preserves the chosen reserve in this model.`, `Bu, peşinatı ${money(guidance.additionalDownPaymentToBalance)} artırır ve modelde ayrılan birikimi korur.`) }
+  else if (guidance.homePriceToBalance && guidance.homePriceReductionToBalance && guidance.monthOneBuyCash < 0) nextTest = { title: tx(`Test a home around ${money(guidance.homePriceToBalance)}`, `Yaklaşık ${money(guidance.homePriceToBalance)} fiyatında bir ev dene`), detail: tx(`Reducing the price by ${money(guidance.homePriceReductionToBalance)} balances month one in this model.`, `Fiyatı ${money(guidance.homePriceReductionToBalance)} azaltmak modelde ilk ayın bütçesini dengeler.`) }
+  else if (guidance.incomeIncreaseToBalance > 0) nextTest = { title: tx(`Month one balances at ${money(guidance.incomeToBalance)} income`, `İlk ay için gereken gelir ${money(guidance.incomeToBalance)}`), detail: tx(`That is ${money(guidance.incomeIncreaseToBalance)} above the income entered.`, `Bu tutar, girilen gelirden ${money(guidance.incomeIncreaseToBalance)} daha yüksek.`) }
+  else if (guidance.code === "reserve-breach") nextTest = { title: tx(`Keep the ${money(scenario.reserve)} reserve visible`, `Ayrılan ${money(scenario.reserve)} birikimi koru`), detail: tx("Test a lower price before committing more savings to the down payment.", "Peşinata daha fazla birikim ayırmadan önce daha düşük bir ev fiyatı dene.") }
+  else nextTest = { title: tx("Compare a verified loan offer", "Gerçek bir kredi teklifiyle karşılaştır"), detail: guidance.lowerPriceMonthlyGain === null ? tx("Keep the reserve unchanged while testing the lender's actual payment.", "Bankanın gerçek taksitini denerken ayrılan birikimi değiştirme.") : tx(`A 10% lower price leaves ${money(guidance.lowerPriceMonthlyGain)} more each month in this model.`, `Ev fiyatını %10 düşürmek modelde ayda ${money(guidance.lowerPriceMonthlyGain)} daha fazla bırakır.`) }
 
   const starting: ReportItem[] = [
     { label: tx("Monthly take-home income", "Aylık net gelir"), value: money(scenario.income) },
@@ -80,7 +120,7 @@ export function buildReportModel(scenario: Scenario, language: ReportLanguage, n
     title: tx("Rent vs buy scenario summary", "Kira–ev alma senaryo özeti"),
     name,
     date: new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(generatedAt),
-    conclusion,
+    conclusion, today, overTime, nextTest,
     starting, buying, support, comparison, milestones, assumptions, chart,
     disclaimer: tx("This document shows the consequences of the inputs and future assumptions above. It is an educational planning scenario, not a forecast or financial, investment, mortgage, legal or tax advice.", "Bu belge, yukarıdaki girdilerin ve gelecek varsayımlarının hesaplanan sonuçlarını gösterir. Eğitim amaçlı bir planlama senaryosudur; tahmin veya finans, yatırım, kredi, hukuk ya da vergi tavsiyesi değildir."),
   }
