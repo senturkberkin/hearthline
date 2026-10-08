@@ -75,38 +75,32 @@ export function HomePage() {
 
       <SectionNav active={activeSection} />
 
-      <section id="how-it-works" className="landing-section notebook-dots px-5 py-14 sm:px-8 sm:py-18">
-        <div className="mx-auto max-w-[1120px]">
-          <div className="max-w-[660px]">
+      <section id="how-it-works" className="landing-section notebook-dots px-5 py-12 sm:px-8 sm:py-16">
+        <div className="mx-auto grid max-w-[1180px] items-stretch gap-4 lg:grid-cols-2 lg:gap-5">
+          <article className="rounded-[24px] bg-card/85 p-6 shadow-[0_18px_40px_-34px_rgba(23,64,112,.6)] sm:p-8">
             <p className="text-[12px] font-semibold text-primary">01 · {tx("The plan", "Plan")}</p>
-            <h2 className="mt-4 text-[clamp(2rem,3.6vw,3.2rem)] leading-[1.06] font-semibold tracking-[-.055em]">{tx("Start with five familiar numbers.", "Bildiğin beş rakamla başla.")}</h2>
-            <p className="mt-3 max-w-[540px] text-[14px] leading-6 text-ink-soft">{tx("Add detail only when it changes the comparison.", "Yalnızca karşılaştırmayı etkileyen ayrıntıları ekle.")}</p>
-          </div>
-          <div className="mt-8 grid gap-3 md:grid-cols-3">
-            <div className="rounded-[18px] bg-card/85 px-5 py-5 shadow-[0_14px_30px_-28px_rgba(23,64,112,.5)]"><p className="text-[13px] font-semibold">{tx("Your starting point", "Başlangıç durumun")}</p><p className="mt-1 text-[12px] text-ink-soft">{tx("Income, rent and spending", "Gelir, kira ve giderler")}</p></div>
-            <div className="rounded-[18px] bg-card/85 px-5 py-5 shadow-[0_14px_30px_-28px_rgba(23,64,112,.5)]"><p className="text-[13px] font-semibold">{tx("A possible home", "Olası bir ev")}</p><p className="mt-1 text-[12px] text-ink-soft">{tx("Price, savings and loan", "Fiyat, birikim ve kredi")}</p></div>
-            <div className="rounded-[18px] bg-card/85 px-5 py-5 shadow-[0_14px_30px_-28px_rgba(23,64,112,.5)]"><p className="text-[13px] font-semibold">{tx("Two monthly paths", "İki aylık seçenek")}</p><p className="mt-1 text-[12px] text-ink-soft">{tx("What remains now and later", "Şimdi ve ileride kalan para")}</p></div>
-          </div>
-        </div>
-      </section>
+            <h2 className="mt-4 max-w-[490px] text-[clamp(2rem,3.2vw,3rem)] leading-[1.07] font-semibold tracking-[-.055em]">{tx("Start with five familiar numbers.", "Bildiğin beş rakamla başla.")}</h2>
+            <p className="mt-3 max-w-[480px] text-[14px] leading-6 text-ink-soft">{tx("Add detail only when it changes the comparison.", "Yalnızca karşılaştırmayı etkileyen ayrıntıları ekle.")}</p>
+            <div className="mt-7 grid gap-2 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+              <div className="rounded-[14px] bg-muted/65 px-4 py-3"><p className="text-[12px] font-semibold">{tx("Your starting point", "Başlangıç durumun")}</p><p className="mt-1 text-[11px] text-ink-soft">{tx("Income, rent, spending", "Gelir, kira, giderler")}</p></div>
+              <div className="rounded-[14px] bg-muted/65 px-4 py-3"><p className="text-[12px] font-semibold">{tx("A possible home", "Olası bir ev")}</p><p className="mt-1 text-[11px] text-ink-soft">{tx("Price, savings, loan", "Fiyat, birikim, kredi")}</p></div>
+              <div className="rounded-[14px] bg-muted/65 px-4 py-3"><p className="text-[12px] font-semibold">{tx("Two paths", "İki seçenek")}</p><p className="mt-1 text-[11px] text-ink-soft">{tx("What remains over time", "Zaman içinde kalan para")}</p></div>
+            </div>
+          </article>
 
-      <section id="methodology" className="landing-section bg-[#f5f7fd] px-5 py-14 sm:px-8 sm:py-18">
-        <div className="mx-auto grid max-w-[1120px] gap-8 md:grid-cols-[.8fr_1.2fr] md:gap-16">
-          <div>
+          <article id="methodology" className="landing-section rounded-[24px] bg-card/85 p-6 shadow-[0_18px_40px_-34px_rgba(23,64,112,.6)] sm:p-8">
             <p className="text-[12px] font-semibold text-primary">02 · {tx("Method", "Yöntem")}</p>
-            <h2 className="mt-4 text-[clamp(2rem,3.2vw,3rem)] leading-[1.08] font-semibold tracking-[-.055em]">{tx("A cash-flow comparison, not a forecast.", "Bir nakit akışı karşılaştırması; tahmin değil.")}</h2>
-          </div>
-          <div className="md:pt-1">
-            <p className="text-[15px] leading-6 text-foreground">{tx("Hearthline compares what remains after renting with what remains after buying, using your own assumptions.", "Hearthline, kendi varsayımlarını kullanarak kirada ve ev alırken giderlerden sonra kalan parayı karşılaştırır.")}</p>
-            <p className="mt-3 text-[13px] leading-5 text-ink-soft">{tx("It does not predict prices, approve a loan or tell you which choice will build more wealth.", "Fiyat tahmini yapmaz, kredi onayı vermez veya hangi seçeneğin daha fazla servet oluşturacağını söylemez.")}</p>
-            <details className="group mt-5 rounded-[15px] bg-card/75 px-5 py-4">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[13px] font-semibold text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
+            <h2 className="mt-4 max-w-[490px] text-[clamp(2rem,3.2vw,3rem)] leading-[1.07] font-semibold tracking-[-.055em]">{tx("A cash-flow comparison, not a forecast.", "Bir nakit akışı karşılaştırması; tahmin değil.")}</h2>
+            <p className="mt-3 max-w-[500px] text-[14px] leading-6 text-foreground">{tx("Hearthline compares what remains after renting with what remains after buying, using your own assumptions.", "Hearthline, kendi varsayımlarını kullanarak kirada ve ev alırken giderlerden sonra kalan parayı karşılaştırır.")}</p>
+            <p className="mt-2 max-w-[500px] text-[12px] leading-5 text-ink-soft">{tx("It does not predict prices, approve a loan or tell you which choice will build more wealth.", "Fiyat tahmini yapmaz, kredi onayı vermez veya hangi seçeneğin daha fazla servet oluşturacağını söylemez.")}</p>
+            <details className="group mt-6 rounded-[14px] bg-muted/65 px-4 py-3.5">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[12px] font-semibold text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
                 {tx("Calculation details", "Hesaplama ayrıntıları")}
                 <ChevronDown aria-hidden="true" className="size-4 shrink-0 transition-transform group-open:rotate-180" />
               </summary>
               <p className="mt-3 text-[12px] leading-5 text-ink-soft">{tx("Monthly cash left is income minus housing, regular spending and debt. The model then applies the income, rent, spending, support and loan assumptions you entered across time.", "Aylık kalan para; gelirden konut gideri, düzenli giderler ve borçlar çıkarılarak hesaplanır. Model daha sonra girdiğin gelir, kira, gider, destek ve kredi varsayımlarını zaman içinde uygular.")}</p>
             </details>
-          </div>
+          </article>
         </div>
       </section>
     </main>
