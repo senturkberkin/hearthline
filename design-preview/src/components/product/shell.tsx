@@ -20,7 +20,7 @@ export function BrandHeader({ mode = "public" }: { mode?: "public" | "app" }) {
     <div className="mx-auto flex h-[68px] max-w-[1240px] items-center justify-between gap-5 px-5 sm:px-8">
       <Brand />
       <nav aria-label="Main navigation" className="hidden items-center gap-7 text-[13px] font-medium text-ink-soft md:flex">
-        {mode === "public" ? <><a href={sitePath("/#how-it-works")} className="hover:text-foreground">{tx("How it works", "Nasıl çalışır?")}</a><a href={sitePath("/#methodology")} className="hover:text-foreground">{tx("Methodology", "Yöntem")}</a><a href={sitePath("/privacy/")} className="hover:text-foreground">{tx("Privacy", "Gizlilik")}</a></> : <><a href={sitePath("/")} className="hover:text-foreground">{tx("About the tool", "Araç hakkında")}</a><a href={sitePath("/#methodology")} className="hover:text-foreground">{tx("Methodology", "Yöntem")}</a></>}
+        {mode === "public" ? <><a href={sitePath("/#methodology")} className="hover:text-foreground">{tx("Methodology", "Yöntem")}</a><a href={sitePath("/privacy/")} className="hover:text-foreground">{tx("Privacy", "Gizlilik")}</a></> : <><a href={sitePath("/")} className="hover:text-foreground">{tx("About the tool", "Araç hakkında")}</a><a href={sitePath("/#methodology")} className="hover:text-foreground">{tx("Methodology", "Yöntem")}</a></>}
         {settings}
         {mode === "app" && <a href={sitePath("/#workspace")} className="rounded-full bg-[#eef1ff] px-4 py-2 font-semibold text-primary hover:bg-[#e2e8ff]">{tx("Back to planner", "Planlayıcıya dön")}</a>}
       </nav>
