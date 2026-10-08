@@ -40,7 +40,7 @@ function SectionNav({ active }: { active: (typeof sections)[number] }) {
 export function HomePage() {
   const activeSection = useActiveSection()
   const { tx, isExample, scenario, savedScenarios, saveIssue } = useProduct()
-  const [workspaceView, setWorkspaceView] = React.useState<"setup" | "results">(isExample ? "setup" : "results")
+  const [workspaceView, setWorkspaceView] = React.useState<"setup" | "results">(() => isExample || new URLSearchParams(window.location.search).get("view") === "setup" ? "setup" : "results")
   const [resultsOpen, setResultsOpen] = React.useState(false)
   const [setupKey, setSetupKey] = React.useState(0)
   const closeResults = () => setResultsOpen(false)
