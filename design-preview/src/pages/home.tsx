@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ArrowRight, ArrowUpRight, ChevronDown, LockKeyhole, X } from "lucide-react"
+import { ArrowRight, ChevronDown, X } from "lucide-react"
 import { Dialog as DialogPrimitive } from "radix-ui"
 import { Button } from "@/components/ui/button"
 import { BrandHeader, PublicFooter } from "@/components/product/shell"
@@ -8,10 +8,37 @@ import { ResultsPage } from "@/pages/results"
 import { ResultGuidance } from "@/components/product/result-guidance"
 import { SavedScenariosDialog } from "@/components/product/scenario-library"
 import { calculate } from "@/lib/engine"
-import { sitePath } from "@/lib/utils"
 import { useProduct } from "@/lib/product-context"
 
+const sections = ["how-it-works", "methodology"] as const
+
+function useActiveSection() {
+  const [active, setActive] = React.useState<(typeof sections)[number]>(sections[0])
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(entries => {
+      for (const entry of entries) if (entry.isIntersecting) setActive(entry.target.id as (typeof sections)[number])
+    }, { rootMargin: "-18% 0px -62% 0px" })
+    sections.forEach(id => { const element = document.getElementById(id); if (element) observer.observe(element) })
+    return () => observer.disconnect()
+  }, [])
+  return active
+}
+
+function SectionNav({ active }: { active: (typeof sections)[number] }) {
+  const { tx } = useProduct()
+  const labels = [tx("The plan", "Plan"), tx("Method", "Yöntem")]
+  return <nav aria-label={tx("About the tool", "Araç hakkında")} className="section-nav sticky top-0 z-30">
+    <div className="mx-auto grid max-w-[760px] grid-cols-2 gap-2 px-3 py-2 sm:px-8">
+      {sections.map((id, index) => <a key={id} href={`#${id}`} aria-current={active === id ? "location" : undefined} data-active={active === id} className="section-nav__item flex min-h-[58px] items-center justify-center gap-3 rounded-[13px] px-4 text-center transition-[background-color,color,box-shadow] duration-200 sm:min-h-[64px]">
+        <span className="text-[11px] font-semibold tracking-[.08em]">0{index + 1}</span>
+        <span className="text-[13px] font-semibold sm:text-[15px]">{labels[index]}</span>
+      </a>)}
+    </div>
+  </nav>
+}
+
 export function HomePage() {
+  const activeSection = useActiveSection()
   const { tx, isExample, scenario, savedScenarios, saveIssue } = useProduct()
   const [workspaceView, setWorkspaceView] = React.useState<"setup" | "results">(isExample ? "setup" : "results")
   const [resultsOpen, setResultsOpen] = React.useState(false)
@@ -46,25 +73,40 @@ export function HomePage() {
         </DialogPrimitive.Portal>
       </DialogPrimitive.Root>
 
-      <section id="methodology" aria-label={tx("About this comparison", "Bu karşılaştırma hakkında")} className="scroll-mt-20 bg-[#f5f7fd] px-5 py-8 sm:px-8 sm:py-10">
-        <div className="mx-auto grid max-w-[1240px] gap-3 md:grid-cols-3">
-          <div className="rounded-[16px] bg-card/70 px-5 py-4">
-            <LockKeyhole aria-hidden="true" className="size-4 text-primary" />
-            <p className="mt-3 text-[14px] font-semibold">{tx("Private in your browser", "Verilerin tarayıcında kalır")}</p>
-            <a href={sitePath("/privacy/")} className="mt-1 inline-flex items-center gap-1 text-[12px] text-ink-soft hover:text-primary hover:underline">{tx("Privacy details", "Gizlilik ayrıntıları")} <ArrowUpRight className="size-3.5" /></a>
+      <SectionNav active={activeSection} />
+
+      <section id="how-it-works" className="landing-section notebook-dots px-5 py-14 sm:px-8 sm:py-18">
+        <div className="mx-auto max-w-[1120px]">
+          <div className="max-w-[660px]">
+            <p className="text-[12px] font-semibold text-primary">01 · {tx("The plan", "Plan")}</p>
+            <h2 className="mt-4 text-[clamp(2rem,3.6vw,3.2rem)] leading-[1.06] font-semibold tracking-[-.055em]">{tx("Start with five familiar numbers.", "Bildiğin beş rakamla başla.")}</h2>
+            <p className="mt-3 max-w-[540px] text-[14px] leading-6 text-ink-soft">{tx("Add detail only when it changes the comparison.", "Yalnızca karşılaştırmayı etkileyen ayrıntıları ekle.")}</p>
           </div>
-          <div className="rounded-[16px] bg-card/70 px-5 py-4">
-            <span aria-hidden="true" className="block size-4 rounded-full bg-primary/15 ring-[5px] ring-primary/5" />
-            <p className="mt-3 text-[14px] font-semibold">{tx("Your assumptions, not a prediction", "Senin varsayımların, piyasa tahmini değil")}</p>
-            <p className="mt-1 text-[12px] text-ink-soft">{tx("An educational scenario, not mortgage advice.", "Eğitim amaçlı bir senaryo; kredi tavsiyesi değil.")}</p>
+          <div className="mt-8 grid gap-3 md:grid-cols-3">
+            <div className="rounded-[18px] bg-card/85 px-5 py-5 shadow-[0_14px_30px_-28px_rgba(23,64,112,.5)]"><p className="text-[13px] font-semibold">{tx("Your starting point", "Başlangıç durumun")}</p><p className="mt-1 text-[12px] text-ink-soft">{tx("Income, rent and spending", "Gelir, kira ve giderler")}</p></div>
+            <div className="rounded-[18px] bg-card/85 px-5 py-5 shadow-[0_14px_30px_-28px_rgba(23,64,112,.5)]"><p className="text-[13px] font-semibold">{tx("A possible home", "Olası bir ev")}</p><p className="mt-1 text-[12px] text-ink-soft">{tx("Price, savings and loan", "Fiyat, birikim ve kredi")}</p></div>
+            <div className="rounded-[18px] bg-card/85 px-5 py-5 shadow-[0_14px_30px_-28px_rgba(23,64,112,.5)]"><p className="text-[13px] font-semibold">{tx("Two monthly paths", "İki aylık seçenek")}</p><p className="mt-1 text-[12px] text-ink-soft">{tx("What remains now and later", "Şimdi ve ileride kalan para")}</p></div>
           </div>
-          <details className="group rounded-[16px] bg-card/70 px-5 py-4">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[14px] font-semibold text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
-              {tx("How the calculation works", "Hesaplama nasıl çalışır?")}
-              <ChevronDown aria-hidden="true" className="size-4 shrink-0 transition-transform group-open:rotate-180" />
-            </summary>
-            <p className="mt-3 text-[12px] leading-5 text-ink-soft">{tx("The tool compares cash left after renting with cash left after buying. It applies the income, rent, spending, support and loan assumptions you enter across time.", "Araç, kirada ve ev alırken giderlerden sonra kalan parayı karşılaştırır. Girdiğin gelir, kira, gider, destek ve kredi varsayımlarını zaman içinde uygular.")}</p>
-          </details>
+        </div>
+      </section>
+
+      <section id="methodology" className="landing-section bg-[#f5f7fd] px-5 py-14 sm:px-8 sm:py-18">
+        <div className="mx-auto grid max-w-[1120px] gap-8 md:grid-cols-[.8fr_1.2fr] md:gap-16">
+          <div>
+            <p className="text-[12px] font-semibold text-primary">02 · {tx("Method", "Yöntem")}</p>
+            <h2 className="mt-4 text-[clamp(2rem,3.2vw,3rem)] leading-[1.08] font-semibold tracking-[-.055em]">{tx("A cash-flow comparison, not a forecast.", "Bir nakit akışı karşılaştırması; tahmin değil.")}</h2>
+          </div>
+          <div className="md:pt-1">
+            <p className="text-[15px] leading-6 text-foreground">{tx("Hearthline compares what remains after renting with what remains after buying, using your own assumptions.", "Hearthline, kendi varsayımlarını kullanarak kirada ve ev alırken giderlerden sonra kalan parayı karşılaştırır.")}</p>
+            <p className="mt-3 text-[13px] leading-5 text-ink-soft">{tx("It does not predict prices, approve a loan or tell you which choice will build more wealth.", "Fiyat tahmini yapmaz, kredi onayı vermez veya hangi seçeneğin daha fazla servet oluşturacağını söylemez.")}</p>
+            <details className="group mt-5 rounded-[15px] bg-card/75 px-5 py-4">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[13px] font-semibold text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
+                {tx("Calculation details", "Hesaplama ayrıntıları")}
+                <ChevronDown aria-hidden="true" className="size-4 shrink-0 transition-transform group-open:rotate-180" />
+              </summary>
+              <p className="mt-3 text-[12px] leading-5 text-ink-soft">{tx("Monthly cash left is income minus housing, regular spending and debt. The model then applies the income, rent, spending, support and loan assumptions you entered across time.", "Aylık kalan para; gelirden konut gideri, düzenli giderler ve borçlar çıkarılarak hesaplanır. Model daha sonra girdiğin gelir, kira, gider, destek ve kredi varsayımlarını zaman içinde uygular.")}</p>
+            </details>
+          </div>
         </div>
       </section>
     </main>

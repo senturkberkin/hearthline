@@ -336,6 +336,9 @@
 .dark .section-nav__item:hover { background: rgb(75 75 75 / .48); color: #fff; }
 .dark .section-nav__item[data-active="true"] { background: rgb(68 68 68 / .74); color: #fff; box-shadow: 0 7px 24px -18px #000; }
 
+.maker-invitation { background: #eaf2ff; }
+.dark .maker-invitation { background: #2d3035; }
+
 .notebook-dots {
   background-color: #f4f8ff;
   background-image: radial-gradient(#abc8ec 1.25px, transparent 1.4px);
