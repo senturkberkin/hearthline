@@ -96,3 +96,11 @@ test('R09 printed report uses the same simplified three-part result hierarchy',(
   assert.match(source,/report\.nextTest\.title/);
   assert.match(css,/--report-negative: #e88692/);
 });
+test('R10 support-dependent scenarios recommend testing the budget without that support',()=>{
+  const scenario=engine.withPrincipal({...engine.scenarioFromFacts({income:90000,rent:30000,livingCosts:20000,savings:600000,propertyPrice:4000000}),downPayment:500000,rate:2,monthlySupport:20000,supportMonths:120});
+  const report=buildReportModel(scenario,'tr',null,date);
+  const withoutSupport=engine.calculate(engine.withPrincipal({...scenario,monthlySupport:0,supportMonths:0})).rows[0].buySurplus;
+  assert.equal(withoutSupport < 0,true);
+  assert.equal(report.nextTest.title,'Aylık destek olmadan da kontrol et');
+  assert.match(report.nextTest.detail,/Destek olmadan ilk ay/);
+});

@@ -73,6 +73,9 @@ export function ResultGuidance({ scenario, projection, headingId = "result-guida
   let exampleAfterLabel = tx("With this test", "Bu denemeyle")
   let exampleAfterValue = money(result.monthOneBuyCash)
   let exampleNote = tx("Your saved scenario does not change.", "Kayıtlı senaryon değişmez.")
+  const withoutMonthlySupport = result.usesMonthlySupport
+    ? calculate(withPrincipal({ ...scenario, monthlySupport: 0, supportMonths: 0 })).rows[0].buySurplus
+    : null
   if (result.code === "funding-gap") {
     nextTitle = tx(`Add ${money(result.fundingGap)} to the purchase funds`, `Alım için ${money(result.fundingGap)} daha gerekiyor`)
     nextDetail = tx("Alternatively, reduce the down payment or other up-front purchase costs.", "Diğer seçenek, peşinatı veya alım sırasındaki diğer giderleri azaltmak.")
@@ -104,17 +107,34 @@ export function ResultGuidance({ scenario, projection, headingId = "result-guida
     exampleAfterLabel = tx("Reserve to protect", "Korunacak birikim")
     exampleAfterValue = money(scenario.reserve)
     exampleNote = tx("Use this as a boundary while testing a lower price or down payment.", "Daha düşük fiyat veya peşinat denerken bu tutarı sınır olarak kullan.")
+  } else if (result.code === "support-dependent" && withoutMonthlySupport !== null) {
+    nextTitle = tx("Check the budget without monthly support", "Aylık destek olmadan da kontrol et")
+    nextDetail = tx(`Without that support, month one leaves ${money(withoutMonthlySupport)}.`, `Destek olmadan ilk ay ${money(withoutMonthlySupport)} kalıyor.`)
+    exampleBeforeLabel = tx("With support", "Destekle")
+    exampleBeforeValue = money(result.monthOneBuyCash)
+    exampleAfterLabel = tx("Without support", "Desteksiz")
+    exampleAfterValue = money(withoutMonthlySupport)
+    exampleNote = tx("This shows whether the monthly plan stands on its own.", "Bu karşılaştırma, aylık planın kendi başına ayakta kalıp kalmadığını gösterir.")
+  } else if (result.lowerPriceMonthlyGain !== null && result.lowerPriceMonthlyGain > 1) {
+    nextTitle = tx("Test a home that costs 10% less", "Fiyatı %10 daha düşük bir evi dene")
+    nextDetail = tx(`That leaves ${money(result.lowerPriceMonthlyGain)} more in month one in this model.`, `Bu değişiklik modelde ilk ay ${money(result.lowerPriceMonthlyGain)} daha fazla bırakır.`)
+    exampleAfterValue = money(result.monthOneBuyCash + result.lowerPriceMonthlyGain)
+  } else if (result.missingOwnerCosts || result.missingBuyingCosts) {
+    nextTitle = tx("Add the costs left at zero", "Sıfır bıraktığın masrafları ekle")
+    nextDetail = tx("Use real quotes for purchase, insurance, maintenance and home-running costs before relying on this result.", "Sonuca güvenmeden önce alım, sigorta, bakım ve ev sahipliği giderlerini gerçek tekliflerle ekle.")
+    exampleBeforeLabel = tx("Entered costs", "Girilen masraflar")
+    exampleBeforeValue = money(0)
+    exampleAfterLabel = tx("Next step", "Sonraki adım")
+    exampleAfterValue = tx("Add real quotes", "Gerçek teklifleri gir")
+    exampleNote = tx("A zero cost can make this scenario look easier than it is.", "Sıfır bırakılan masraflar senaryoyu olduğundan daha rahat gösterebilir.")
   } else {
     nextTitle = tx("Compare a verified loan offer", "Gerçek bir kredi teklifiyle karşılaştır")
-    nextDetail = result.lowerPriceMonthlyGain === null
-      ? tx("Keep the reserve unchanged while testing the lender's actual payment.", "Bankanın gerçek taksitini denerken ayırdığın birikimi değiştirme.")
-      : tx(`A 10% lower price leaves ${money(result.lowerPriceMonthlyGain)} more each month in this model.`, `Ev fiyatını %10 düşürmek modelde ayda ${money(result.lowerPriceMonthlyGain)} daha fazla bırakır.`)
-    if (result.lowerPriceMonthlyGain !== null) exampleAfterValue = money(result.monthOneBuyCash + result.lowerPriceMonthlyGain)
-    else {
-      exampleAfterLabel = tx("Next check", "Sonraki kontrol")
-      exampleAfterValue = tx("Enter lender quote", "Banka teklifini gir")
-      exampleNote = tx("Use the lender's actual monthly payment without changing your reserve.", "Bankanın gerçek aylık taksitini, ayırdığın birikimi değiştirmeden dene.")
-    }
+    nextDetail = tx(`The model uses a monthly payment of ${money(projection.payment)}. Compare the bank's actual payment against that number.`, `Modelde aylık taksit ${money(projection.payment)}. Bankanın gerçek taksitini bu tutarla karşılaştır.`)
+    exampleBeforeLabel = tx("Model payment", "Modeldeki taksit")
+    exampleBeforeValue = money(projection.payment)
+    exampleAfterLabel = tx("Bank offer", "Banka teklifi")
+    exampleAfterValue = tx("Enter payment", "Taksiti gir")
+    exampleNote = tx("Keep your savings reserve unchanged while checking the offer.", "Teklifi denerken ayırdığın birikimi değiştirme.")
   }
 
   const toggle = (card: "today" | "time" | "next") => setExpanded(current => current === card ? null : card)
