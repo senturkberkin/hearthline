@@ -59,12 +59,12 @@ export function MakerInvitation() {
     <div className="mx-auto max-w-[1240px] px-5 sm:px-8">
       <div className="grid max-w-[1040px] gap-6 md:grid-cols-[.72fr_1.28fr] md:gap-14">
         <div>
-          <p className="text-[12px] font-medium text-muted-foreground">{tx("Meet the maker", "Projeyi yapan kişi")}</p>
-          <h2 id="maker-invitation-title" className="mt-3 max-w-[330px] text-[clamp(1.75rem,3vw,2.45rem)] font-semibold leading-[1.08] tracking-[-.055em]">{tx("Building something?", "Sen de bir şeyler mi üretiyorsun?")}</h2>
+          <p className="text-[12px] font-medium text-muted-foreground">{tx("About Hearthline", "Hearthline’ın arkasında")}</p>
+          <h2 id="maker-invitation-title" className="mt-3 max-w-[360px] text-[clamp(1.75rem,3vw,2.45rem)] font-semibold leading-[1.08] tracking-[-.055em]">{tx("Hi, I’m Berkin Şentürk.", "Merhaba, ben Berkin Şentürk.")}</h2>
         </div>
         <div className="md:pt-1">
-          <p className="max-w-[630px] text-[14px] leading-6 text-foreground">{tx("I'm Berkin Şentürk. I build Hearthline as an independent project to make complex financial decisions easier to understand.", "Ben Berkin Şentürk. Hearthline’ı, karmaşık finansal kararları daha anlaşılır hale getiren bağımsız bir proje olarak geliştiriyorum.")}</p>
-          <p className="mt-3 max-w-[610px] text-[13px] leading-5 text-muted-foreground">{tx("Follow my work on LinkedIn or GitHub—or send me a note if you'd like to meet, share an idea or report a problem.", "Ürettiğim diğer işleri LinkedIn ve GitHub’dan takip edebilir; tanışmak, fikir paylaşmak veya bir sorun bildirmek için bana yazabilirsin.")}</p>
+          <p className="max-w-[630px] text-[14px] leading-6 text-foreground">{tx("I’m building Hearthline independently to make the financial side of finding a home easier to follow.", "Hearthline’ı, ev aramanın finansal tarafını daha anlaşılır kılmak için bağımsız olarak geliştiriyorum.")}</p>
+          <p className="mt-3 max-w-[610px] text-[13px] leading-5 text-muted-foreground">{tx("You can follow what I’m working on through LinkedIn or GitHub. If you have feedback on Hearthline, I’d be glad to hear it.", "Neler üzerinde çalıştığımı LinkedIn ve GitHub’dan takip edebilirsin. Hearthline hakkında bir fikrin ya da geri bildirimin varsa duymaktan memnun olurum.")}</p>
           <div className="mt-5 flex min-h-10 flex-wrap items-center gap-3 text-[13px] font-semibold">
             <a href="https://www.linkedin.com/in/senturkberkin/" target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center rounded-full bg-primary px-4 text-primary-foreground transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring">{tx("Follow on LinkedIn →", "LinkedIn’de takip et →")}</a>
             <a href="https://github.com/senturkberkin/hearthline" target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center px-2 text-ink-soft hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring">{tx("GitHub →", "GitHub →")}</a>
