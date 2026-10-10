@@ -30,7 +30,7 @@ test('S03 known next rent remains calculation-only until explicitly applied',()=
   assert.match(setup,/id="next-rent"[\s\S]*?onValueChange=\{setNextRent\}/);
   assert.match(setup,/tx\("Use this increase", "Bu artışı kullan"\)/);
   assert.match(setup,/onClick=\{\(\) => update\(\{ rentGrowth: Math\.round\(observedRentRise \* 10\) \/ 10 \}\)\}/);
-  assert.match(setup,/tx\("Calculated", "Hesaplanan"\)/);
+  assert.match(setup,/tx\("Implied increase", "Hesaplanan artış"\)/);
 });
 
 test('S04 navigation says what comes next in both languages',()=>{
