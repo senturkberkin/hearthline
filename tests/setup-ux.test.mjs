@@ -6,6 +6,7 @@ const setup=readFileSync(new URL('../design-preview/src/pages/setup.tsx',import.
 const fieldInfo=readFileSync(new URL('../design-preview/src/components/product/field-info.tsx',import.meta.url),'utf8');
 const financialInput=readFileSync(new URL('../design-preview/src/components/product/financial-input.tsx',import.meta.url),'utf8');
 const home=readFileSync(new URL('../design-preview/src/pages/home.tsx',import.meta.url),'utf8');
+const monthPicker=readFileSync(new URL('../design-preview/src/components/product/month-picker.tsx',import.meta.url),'utf8');
 
 test('S01 setup asks for present-day facts before home and future assumptions',()=>{
   assert.match(setup,/tx\("Today", "Bugün"\).*tx\("The home", "Ev"\).*tx\("Future assumptions", "Gelecek"\)/s);
@@ -66,4 +67,10 @@ test('S08 aligned labels and methodology links do not leave the user on the resu
   assert.match(setup,/mt-7 grid gap-5 sm:grid-cols-2 sm:items-end/);
   assert.match(home,/window\.location\.hash\.slice\(1\)/);
   assert.match(home,/document\.getElementById\(id\)\?\.scrollIntoView\(\)/);
+});
+
+test('S09 month selection uses a compact native control in narrow assumption columns',()=>{
+  assert.match(monthPicker,/<select value=\{value\}/);
+  assert.match(monthPicker,/Array\.from\(\{ length: 12 \}/);
+  assert.doesNotMatch(monthPicker,/ToggleGroup/);
 });

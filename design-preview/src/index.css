@@ -371,13 +371,3 @@ html:not(.dark) :is([class*="bg-[#e2e8ff]"], [class*="bg-[#e9edf8]"], [class*="b
 @media (prefers-reduced-motion: reduce) {
   .section-enter { opacity: 1; transform: none; transition: none; }
 }
-
-.month-picker {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  width: 100%;
-}
-
-@media (min-width: 700px) {
-  .month-picker { grid-template-columns: repeat(12, minmax(0, 1fr)); }
-}
