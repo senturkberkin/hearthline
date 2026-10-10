@@ -1,6 +1,7 @@
 import * as React from "react"
-import { Plus } from "lucide-react"
+import { ChevronDown, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { MoneyInput } from "@/components/product/financial-input"
 import { FieldInfo } from "@/components/product/field-info"
 import { useProduct } from "@/lib/product-context"
@@ -13,7 +14,10 @@ export function IncomeHistoryCalculator({ currentIncome, onApply }: { currentInc
   const { rows, average } = summarizeIncomeHistory([...history, { year: currentYear, income: currentIncome }])
   const oldestYear = Math.min(...history.map(entry => entry.year))
 
-  return <div className="mt-5 rounded-[16px] bg-[#f5f7fd] p-4 dark:bg-[#24282e] sm:p-5">
+  return <Collapsible className="mt-5">
+    <CollapsibleTrigger asChild><Button type="button" variant="ghost" size="sm" className="px-0 text-primary">{tx("Calculate an increase rate from past income", "Geçmiş gelirlerden artış oranı hesapla")} <ChevronDown className="size-3.5" /></Button></CollapsibleTrigger>
+    <CollapsibleContent className="pt-4">
+      <div className="rounded-[16px] bg-[#f5f7fd] p-4 sm:p-5">
         <p className="text-[12px] text-muted-foreground">{tx("Enter monthly take-home pay for consecutive years.", "Ardışık yıllardaki aylık net gelirini gir.")}</p>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[305px] table-fixed text-left text-[12px]">
@@ -27,5 +31,7 @@ export function IncomeHistoryCalculator({ currentIncome, onApply }: { currentInc
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-3"><Button type="button" variant="outline" size="sm" disabled={history.length >= 4} onClick={() => setHistory(items => [{ year: oldestYear - 1, income: 0 }, ...items])}><Plus className="size-3.5" />{tx("Add earlier year", "Önceki yılı ekle")}</Button>{history.length > 1 && <Button type="button" variant="ghost" size="sm" onClick={() => setHistory(items => items.filter(item => item.year !== oldestYear))}>{tx("Remove oldest", "En eski yılı çıkar")}</Button>}</div>
         <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-[12px] bg-card p-3"><div><span className="flex items-center gap-1 text-[11px] text-muted-foreground">{tx("Historical average annual change", "Geçmiş yılların ortalama artışı")}<FieldInfo label={tx("About using past income growth", "Geçmiş gelir artışını kullanma hakkında")}>{tx("Past salary growth is only a reference. Using it here does not mean Hearthline expects the same growth to continue.", "Geçmiş gelir artışları yalnızca referanstır. Burada kullanman, Hearthline’ın aynı artışın devam edeceğini öngördüğü anlamına gelmez.")}</FieldInfo></span><strong className="block text-[18px] font-semibold tabular-nums">{average === null ? "—" : `${average > 0 ? "+" : ""}${percent(average)}`}</strong></div><Button type="button" size="sm" disabled={average === null} onClick={() => { if (average !== null) onApply(Math.round(average * 10) / 10) }}>{tx("Use as assumption", "Varsayım olarak kullan")}</Button></div>
-  </div>
+      </div>
+    </CollapsibleContent>
+  </Collapsible>
 }
