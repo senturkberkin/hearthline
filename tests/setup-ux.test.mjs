@@ -50,3 +50,11 @@ test('S06 obvious fields remain explanation-free while high-risk fields are expl
   assert.match(setup,/Konut kredisi faiz oranı hakkında/);
   assert.match(setup,/Düzenli giderlere neleri eklemeli\?/);
 });
+
+test('S07 year fields can be cleared while someone replaces their value',()=>{
+  assert.match(setup,/function IntegerInput/);
+  assert.match(setup,/if \(raw === ""\) return/);
+  assert.match(setup,/if \(text === ""\) \{ setText\(String\(value\)\); return \}/);
+  assert.match(setup,/<IntegerInput id="loan-term" value=\{draft\.termYears\}/);
+  assert.match(setup,/<IntegerInput id="horizon" value=\{draft\.horizon\}/);
+});
