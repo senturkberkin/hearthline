@@ -2,6 +2,7 @@ import * as React from "react"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { MoneyInput } from "@/components/product/financial-input"
+import { FieldInfoLabel } from "@/components/product/field-info"
 import { useProduct } from "@/lib/product-context"
 import type { Scenario } from "@/lib/engine"
 
@@ -17,10 +18,9 @@ export function SupportInputs({ scenario, update, compact = false }: { scenario:
     </div>
     {enabled && <div className={`mt-4 grid gap-4 rounded-[16px] bg-muted p-5 ${compact ? "" : "sm:grid-cols-2"}`}>
       <MoneyInput id={compact ? "adjust-support-upfront" : "support-upfront"} label={tx("One-time help with the down payment", "Peşinata tek seferlik destek")} value={scenario.upfrontSupport} onValueChange={upfrontSupport => update({ upfrontSupport })} />
-      <MoneyInput id={compact ? "adjust-support-monthly" : "support-monthly"} label={tx("Monthly help with mortgage payments", "Kredi taksitine aylık destek")} value={scenario.monthlySupport} onValueChange={monthlySupport => update({ monthlySupport })} />
+      <MoneyInput id={compact ? "adjust-support-monthly" : "support-monthly"} label={<FieldInfoLabel infoLabel={tx("About monthly support", "Aylık destek hakkında")} info={tx("Monthly support is counted toward mortgage payments. If no end date is set, Hearthline assumes it continues until the mortgage ends.", "Aylık destek kredi taksitine katkı olarak sayılır. Bitiş süresi belirtilmezse Hearthline desteğin kredi bitene kadar sürdüğünü varsayar.")}>{tx("Monthly help with mortgage payments", "Kredi taksitine aylık destek")}</FieldInfoLabel>} value={scenario.monthlySupport} onValueChange={monthlySupport => update({ monthlySupport })} />
       {scenario.monthlySupport > 0 && <div className={compact ? "" : "sm:col-span-2"}>
-        <p className="text-[12px] text-ink-soft">{tx("Counted toward the mortgage payment until the loan ends by default.", "Varsayılan olarak kredi bitene kadar taksite sayılır.")}</p>
-        <label className="mt-3 flex cursor-pointer items-center gap-2 text-[13px] font-medium"><input type="checkbox" checked={endsEarly} onChange={event => update({ supportMonths: event.target.checked ? Math.min(12, maxMonths - 1) : 0 })} disabled={maxMonths <= 1} className="size-4 accent-primary" />{tx("Support ends earlier", "Destek daha erken bitecek")}</label>
+        <label className="flex cursor-pointer items-center gap-2 text-[13px] font-medium"><input type="checkbox" checked={endsEarly} onChange={event => update({ supportMonths: event.target.checked ? Math.min(12, maxMonths - 1) : 0 })} disabled={maxMonths <= 1} className="size-4 accent-primary" />{tx("Support ends earlier", "Destek daha erken bitecek")}</label>
         {endsEarly && <Field className="mt-3 max-w-[200px]"><FieldLabel htmlFor={compact ? "adjust-support-months" : "support-months"}>{tx("Support duration (months)", "Destek süresi (ay)")}</FieldLabel><Input id={compact ? "adjust-support-months" : "support-months"} type="number" min="1" max={maxMonths - 1} value={scenario.supportMonths} onChange={event => update({ supportMonths: Math.min(maxMonths - 1, Math.max(1, Number(event.target.value) || 1)) })} /></Field>}
       </div>}
     </div>}

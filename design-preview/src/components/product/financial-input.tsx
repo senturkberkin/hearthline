@@ -58,7 +58,7 @@ function formatEdit(text: string, caret: number, locale: Locale, decimals: boole
 
 type FinancialInputProps = {
   id: string
-  label: string
+  label: React.ReactNode
   value: number
   onValueChange: (value: number) => void
   locale?: Locale
