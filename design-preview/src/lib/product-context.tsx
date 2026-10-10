@@ -10,6 +10,21 @@ const savedActiveKey = "hearthline.saved.active"
 const settingsKey = "hearthline.settings.v1"
 const savedStore = createSavedScenarioStore()
 
+const pageMetadata = {
+  en: {
+    title: "Hearthline — Rent vs. buy planner",
+    description: "Compare rent and buy cash flow using your own assumptions. Your data stays in your browser; a planning aid, not advice.",
+  },
+  tr: {
+    title: "Hearthline — Kira mı, ev almak mı?",
+    description: "Kira ve ev alma nakit akışını kendi varsayımlarınla karşılaştır. Verilerin tarayıcında kalır; planlama aracıdır, tavsiye değildir.",
+  },
+} as const
+
+function setMetaContent(selector: string, content: string) {
+  document.querySelector<HTMLMetaElement>(selector)?.setAttribute("content", content)
+}
+
 export const exampleScenario: Scenario = { ...scenarioFromFacts({ income: 75_000, rent: 28_000, livingCosts: 22_000, savings: 500_000, propertyPrice: 4_500_000 }), incomeGrowth: 8, rentGrowth: 6 }
 
 function readScenario(): Scenario {
@@ -74,7 +89,9 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.lang = settings.language
     document.documentElement.dataset.theme = settings.theme
     document.documentElement.classList.toggle("dark", settings.theme === "dark")
-    document.title = "Hearthline - Konut Kredisi Simülasyonu"
+    const metadata = pageMetadata[settings.language]
+    document.title = metadata.title
+    setMetaContent('meta[name="description"]', metadata.description)
     document.querySelector('meta[name="theme-color"]')?.setAttribute("content", settings.theme === "dark" ? "#191b1e" : "#ffffff")
     try { localStorage.setItem(settingsKey, JSON.stringify(settings)) } catch { /* Keep settings in memory. */ }
   }, [settings])
