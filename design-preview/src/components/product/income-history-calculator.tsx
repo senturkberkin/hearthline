@@ -14,8 +14,8 @@ export function IncomeHistoryCalculator({ currentIncome, onApply }: { currentInc
   const { rows, average } = summarizeIncomeHistory([...history, { year: currentYear, income: currentIncome }])
   const oldestYear = Math.min(...history.map(entry => entry.year))
 
-  return <Collapsible className="mt-6">
-    <CollapsibleTrigger asChild><Button type="button" variant="ghost" size="sm" className="px-0 text-primary">{tx("Calculate from past income", "Geçmiş gelirlerden hesapla")} <ChevronDown className="size-3.5" /></Button></CollapsibleTrigger>
+  return <Collapsible className="mt-5">
+    <CollapsibleTrigger asChild><Button type="button" variant="ghost" size="sm" className="px-0 text-primary">{tx("Calculate an increase rate from past income", "Geçmiş gelirlerden artış oranı hesapla")} <ChevronDown className="size-3.5" /></Button></CollapsibleTrigger>
     <CollapsibleContent className="pt-4">
       <div className="rounded-[16px] bg-[#f5f7fd] p-4 sm:p-5">
         <p className="text-[12px] text-muted-foreground">{tx("Enter monthly take-home pay for consecutive years.", "Ardışık yıllardaki aylık net gelirini gir.")}</p>
