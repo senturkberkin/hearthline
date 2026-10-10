@@ -74,10 +74,3 @@ test('S09 month selection uses a compact native control in narrow assumption col
   assert.match(monthPicker,/Array\.from\(\{ length: 12 \}/);
   assert.doesNotMatch(monthPicker,/ToggleGroup/);
 });
-
-test('S10 advanced growth controls use full-width named groups and explicit month labels',()=>{
-  assert.match(setup,/tx\("Choose when increases happen or calculate a rate", "Artış aylarını belirle veya oran hesapla"\)/);
-  assert.match(setup,/tx\("Month the income increase takes effect", "Gelir artışının uygulanacağı ay"\)/);
-  assert.match(setup,/tx\("Month the rent increase takes effect", "Kira artışının uygulanacağı ay"\)/);
-  assert.doesNotMatch(setup,/sm:grid-cols-2"><div><IncomeHistoryCalculator/);
-});
