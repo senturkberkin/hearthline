@@ -97,7 +97,7 @@ function FinancialInput({ id, label, value, onValueChange, locale, className, di
   }, [text])
 
   return <Field className={className}>
-    <FieldLabel htmlFor={id} className={hideLabel ? "sr-only" : "text-[12px] font-semibold text-ink-soft"}>{label}</FieldLabel>
+    <FieldLabel htmlFor={id} className={hideLabel ? "sr-only" : "min-h-7 items-center text-[12px] font-semibold text-ink-soft"}>{label}</FieldLabel>
     <InputGroup className="shadow-none">
       <InputGroupInput
         ref={inputRef}

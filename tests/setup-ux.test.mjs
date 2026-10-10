@@ -4,6 +4,8 @@ import {test} from 'node:test';
 
 const setup=readFileSync(new URL('../design-preview/src/pages/setup.tsx',import.meta.url),'utf8');
 const fieldInfo=readFileSync(new URL('../design-preview/src/components/product/field-info.tsx',import.meta.url),'utf8');
+const financialInput=readFileSync(new URL('../design-preview/src/components/product/financial-input.tsx',import.meta.url),'utf8');
+const home=readFileSync(new URL('../design-preview/src/pages/home.tsx',import.meta.url),'utf8');
 
 test('S01 setup asks for present-day facts before home and future assumptions',()=>{
   assert.match(setup,/tx\("Today", "Bugün"\).*tx\("The home", "Ev"\).*tx\("Future assumptions", "Gelecek"\)/s);
@@ -27,7 +29,7 @@ test('S03 known next rent remains calculation-only until explicitly applied',()=
   assert.match(setup,/id="next-rent"[\s\S]*?onValueChange=\{setNextRent\}/);
   assert.match(setup,/tx\("Use this increase", "Bu artışı kullan"\)/);
   assert.match(setup,/onClick=\{\(\) => update\(\{ rentGrowth: Math\.round\(observedRentRise \* 10\) \/ 10 \}\)\}/);
-  assert.match(setup,/The scenario still uses.*until you apply this increase/);
+  assert.match(setup,/tx\("Calculated", "Hesaplanan"\)/);
 });
 
 test('S04 navigation says what comes next in both languages',()=>{
@@ -57,4 +59,10 @@ test('S07 year fields can be cleared while someone replaces their value',()=>{
   assert.match(setup,/if \(text === ""\) \{ setText\(String\(value\)\); return \}/);
   assert.match(setup,/<IntegerInput id="loan-term" value=\{draft\.termYears\}/);
   assert.match(setup,/<IntegerInput id="horizon" value=\{draft\.horizon\}/);
+});
+
+test('S08 aligned labels and methodology links do not leave the user on the results view',()=>{
+  assert.match(financialInput,/min-h-7 items-center text-\[12px\]/);
+  assert.match(home,/window\.location\.hash\.slice\(1\)/);
+  assert.match(home,/document\.getElementById\(id\)\?\.scrollIntoView\(\)/);
 });

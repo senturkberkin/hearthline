@@ -47,6 +47,12 @@ export function HomePage() {
   const editScenario = () => { setWorkspaceView("setup"); closeResults(); document.getElementById("workspace")?.scrollIntoView({ behavior: "smooth" }) }
   const clearResults = () => { setSetupKey(current => current + 1); editScenario() }
   const projection = React.useMemo(() => resultsOpen ? calculate(scenario) : null, [resultsOpen, scenario])
+  React.useEffect(() => {
+    const id = window.location.hash.slice(1)
+    if (!id) return
+    const frame = window.requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView())
+    return () => window.cancelAnimationFrame(frame)
+  }, [])
   return <div className="min-h-screen bg-white text-foreground">
     <BrandHeader />
     <main>
