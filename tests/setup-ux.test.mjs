@@ -7,12 +7,15 @@ const fieldInfo=readFileSync(new URL('../design-preview/src/components/product/f
 const financialInput=readFileSync(new URL('../design-preview/src/components/product/financial-input.tsx',import.meta.url),'utf8');
 const home=readFileSync(new URL('../design-preview/src/pages/home.tsx',import.meta.url),'utf8');
 const monthPicker=readFileSync(new URL('../design-preview/src/components/product/month-picker.tsx',import.meta.url),'utf8');
+const futureAssumptions=readFileSync(new URL('../design-preview/src/components/product/future-assumptions.tsx',import.meta.url),'utf8');
+const incomeHistory=readFileSync(new URL('../design-preview/src/components/product/income-history-calculator.tsx',import.meta.url),'utf8');
+const integerInput=readFileSync(new URL('../design-preview/src/components/product/integer-input.tsx',import.meta.url),'utf8');
 
 test('S01 setup asks for present-day facts before home and future assumptions',()=>{
   assert.match(setup,/tx\("Today", "Bugün"\).*tx\("The home", "Ev"\).*tx\("Future assumptions", "Gelecek"\)/s);
   const today=setup.indexOf('id="current-income"');
   const home=setup.indexOf('id="home-price"');
-  const future=setup.indexOf('id="income-growth"');
+  const future=setup.indexOf('<FutureAssumptions');
   assert.ok(today>=0 && home>today && future>home);
   assert.match(setup,/id="current-rent"/);
   assert.match(setup,/id="living-costs"/);
@@ -27,10 +30,10 @@ test('S02 field explanations reuse an accessible popover with a mobile-safe widt
 });
 
 test('S03 known next rent remains calculation-only until explicitly applied',()=>{
-  assert.match(setup,/id="next-rent"[\s\S]*?onValueChange=\{setNextRent\}/);
-  assert.match(setup,/tx\("Use this increase", "Bu artışı kullan"\)/);
-  assert.match(setup,/onClick=\{\(\) => update\(\{ rentGrowth: Math\.round\(observedRentRise \* 10\) \/ 10 \}\)\}/);
-  assert.match(setup,/tx\("Calculated", "Hesaplanan"\)/);
+  assert.match(futureAssumptions,/id="next-rent"[\s\S]*?onValueChange=\{setNextRent\}/);
+  assert.match(futureAssumptions,/tx\("Use this increase", "Bu artışı kullan"\)/);
+  assert.match(futureAssumptions,/onClick=\{\(\) => update\(\{ rentGrowth: Math\.round\(impliedRentGrowth \* 10\) \/ 10 \}\)\}/);
+  assert.match(futureAssumptions,/tx\("Implied annual change", "Hesaplanan yıllık değişim"\)/);
 });
 
 test('S04 navigation says what comes next in both languages',()=>{
@@ -55,11 +58,11 @@ test('S06 obvious fields remain explanation-free while high-risk fields are expl
 });
 
 test('S07 year fields can be cleared while someone replaces their value',()=>{
-  assert.match(setup,/function IntegerInput/);
-  assert.match(setup,/if \(raw === ""\) return/);
-  assert.match(setup,/if \(text === ""\) \{ setText\(String\(value\)\); return \}/);
+  assert.match(integerInput,/function IntegerInput/);
+  assert.match(integerInput,/if \(raw === ""\) return/);
+  assert.match(integerInput,/if \(text === ""\) \{ setText\(String\(value\)\); return \}/);
   assert.match(setup,/<IntegerInput id="loan-term" value=\{draft\.termYears\}/);
-  assert.match(setup,/<IntegerInput id="horizon" value=\{draft\.horizon\}/);
+  assert.match(futureAssumptions,/<IntegerInput id="horizon" value=\{scenario\.horizon\}/);
 });
 
 test('S08 aligned labels and methodology links do not leave the user on the results view',()=>{
@@ -75,9 +78,17 @@ test('S09 month selection uses a compact native control in narrow assumption col
   assert.doesNotMatch(monthPicker,/ToggleGroup/);
 });
 
-test('S10 advanced growth controls use full-width named groups and explicit month labels',()=>{
-  assert.match(setup,/tx\("Choose when increases happen or calculate a rate", "Artış aylarını belirle veya oran hesapla"\)/);
-  assert.match(setup,/tx\("Month the income increase takes effect", "Gelir artışının uygulanacağı ay"\)/);
-  assert.match(setup,/tx\("Month the rent increase takes effect", "Kira artışının uygulanacağı ay"\)/);
-  assert.doesNotMatch(setup,/sm:grid-cols-2"><div><IncomeHistoryCalculator/);
+test('S10 future assumptions use human questions with one conditional detail per choice',()=>{
+  assert.match(futureAssumptions,/How should your income change over time\?.*Gelirin zaman içinde nasıl değişsin\?/);
+  assert.match(futureAssumptions,/How should your rent change over time\?.*Kiran zaman içinde nasıl değişsin\?/);
+  assert.match(futureAssumptions,/Should your regular expenses change over time\?.*Düzenli giderlerin zaman içinde değişsin mi\?/);
+  assert.match(futureAssumptions,/incomeMode === "annual"/);
+  assert.match(futureAssumptions,/incomeMode === "history"/);
+  assert.match(futureAssumptions,/rentMode === "next"/);
+  assert.match(futureAssumptions,/rentMode === "annual"/);
+  assert.match(futureAssumptions,/expenseMode === "annual"/);
+  assert.match(futureAssumptions,/tx\("More assumptions", "Diğer varsayımlar"\)/);
+  assert.match(futureAssumptions,/<SupportInputs scenario=\{scenario\} update=\{update\}/);
+  assert.doesNotMatch(incomeHistory,/Collapsible/);
+  assert.equal((futureAssumptions.match(/<Collapsible className=/g) ?? []).length,1);
 });

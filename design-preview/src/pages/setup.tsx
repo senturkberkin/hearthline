@@ -1,70 +1,26 @@
 import * as React from "react"
 import { ArrowLeft, ArrowRight, ChevronDown, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { BrandHeader } from "@/components/product/shell"
 import { MoneyInput, PercentInput } from "@/components/product/financial-input"
 import { FieldInfo, FieldInfoLabel } from "@/components/product/field-info"
-import { IncomeHistoryCalculator } from "@/components/product/income-history-calculator"
-import { MonthPicker } from "@/components/product/month-picker"
-import { SupportInputs } from "@/components/product/support-inputs"
+import { FutureAssumptions } from "@/components/product/future-assumptions"
+import { IntegerInput } from "@/components/product/integer-input"
 import { useProduct } from "@/lib/product-context"
 import { clampDownPayment, downPaymentAllocation } from "@/lib/down-payment-allocation"
 import { validateScenario, withPrincipal, type Scenario } from "@/lib/engine"
 import { sitePath } from "@/lib/utils"
-
-function AssumptionFieldLabel({ label, badge, info, infoLabel }: { label: string; badge: string; info: React.ReactNode; infoLabel: string }) {
-  return <span className="inline-flex flex-wrap items-center gap-1"><span>{label}</span><span className="rounded-full bg-primary/8 px-1.5 py-0.5 text-[9px] font-semibold text-primary">{badge}</span><FieldInfo label={infoLabel}>{info}</FieldInfo></span>
-}
-
-function IntegerInput({ id, value, onValueChange, min, max }: { id: string; value: number; onValueChange: (value: number) => void; min: number; max: number }) {
-  const [text, setText] = React.useState(() => String(value))
-  const isEditing = React.useRef(false)
-  const normalize = (raw: string) => Math.min(max, Math.max(min, Math.round(Number(raw))))
-
-  React.useEffect(() => {
-    if (!isEditing.current) setText(String(value))
-  }, [value])
-
-  return <Input
-    id={id}
-    type="number"
-    inputMode="numeric"
-    min={min}
-    max={max}
-    value={text}
-    onFocus={() => { isEditing.current = true }}
-    onChange={event => {
-      const raw = event.target.value
-      setText(raw)
-      if (raw === "") return
-      const next = normalize(raw)
-      if (Number.isFinite(next)) onValueChange(next)
-    }}
-    onBlur={() => {
-      isEditing.current = false
-      if (text === "") { setText(String(value)); return }
-      const next = normalize(text)
-      setText(String(next))
-      if (next !== value) onValueChange(next)
-    }}
-  />
-}
 
 export function SetupPage({ embedded = false, onComplete }: { embedded?: boolean; onComplete?: () => void } = {}) {
   const { scenario, setScenario, tx, money, percent } = useProduct()
   const [draft, setDraft] = React.useState<Scenario>(() => ({ ...scenario, downPayment: clampDownPayment(scenario) }))
   const [step, setStep] = React.useState(0)
   const [direction, setDirection] = React.useState<"forward" | "back">("forward")
-  const [nextRent, setNextRent] = React.useState(0)
   const [error, setError] = React.useState("")
   const steps = [tx("Today", "Bugün"), tx("The home", "Ev"), tx("Future assumptions", "Gelecek")]
   const update = (patch: Partial<Scenario>) => setDraft(current => { const next = { ...current, ...patch }; return { ...next, downPayment: clampDownPayment(next) } })
-  const hasNextRent = draft.rent > 0 && nextRent > 0
-  const observedRentRise = hasNextRent ? (nextRent / draft.rent - 1) * 100 : 0
-  const rentRiseApplied = hasNextRent && Math.abs(draft.rentGrowth - observedRentRise) < .05
   const allocation = downPaymentAllocation(draft)
   const Content = embedded ? "div" : "main"
   const headingRef = React.useRef<HTMLHeadingElement>(null)
@@ -135,12 +91,8 @@ export function SetupPage({ embedded = false, onComplete }: { embedded?: boolean
             </CollapsibleContent></Collapsible>
           </section>}
 
-          {step === 2 && <section aria-labelledby="future-heading" className="max-w-[680px]"><span className="rounded-full bg-primary/8 px-2 py-1 text-[10px] font-semibold text-primary">{tx("Your assumptions", "Senin varsayımların")}</span><h2 id="future-heading" ref={headingRef} tabIndex={-1} className="mt-3 text-[25px] font-semibold tracking-[-.045em] outline-none">{tx("What might change over time?", "Zaman içinde neler değişebilir?")}</h2><p className="mt-2 max-w-[560px] text-[12px] leading-5 text-ink-soft">{tx("These are not forecasts. Keep the current values or adjust how the scenario changes over time.", "Bunlar tahmin değil. Mevcut değerleri koruyabilir veya senaryonun zaman içinde nasıl değişeceğini belirleyebilirsin.")}</p>
-            <div className="mt-6 grid gap-4">
-              <div className="rounded-[18px] bg-[#f1f4fb] p-5 dark:bg-[#292d32]"><h3 className="text-[15px] font-semibold">{tx("Income and rent growth", "Gelir ve kira artışı")}</h3><div className="mt-4 grid gap-5 sm:grid-cols-2"><PercentInput id="income-growth" label={<AssumptionFieldLabel label={tx("Annual income growth", "Yıllık gelir artışı")} badge={assumption} infoLabel={tx("About future income growth", "Gelecek gelir artışı hakkında")} info={tx("The annual salary growth Hearthline uses going forward.", "Hearthline’ın gelecek yıllar için kullanacağı yıllık gelir artışı varsayımıdır.")} />} value={draft.incomeGrowth} onValueChange={incomeGrowth => update({ incomeGrowth })} /><PercentInput id="rent-growth" label={<AssumptionFieldLabel label={tx("Annual rent growth", "Yıllık kira artışı")} badge={assumption} infoLabel={tx("About future rent change", "Gelecek kira artışı hakkında")} info={tx("The annual rent change Hearthline applies at each future rent-renewal month.", "Hearthline’ın gelecekteki her kira yenileme ayında uyguladığı yıllık kira değişimidir.")} />} value={draft.rentGrowth} onValueChange={rentGrowth => update({ rentGrowth })} /></div><Collapsible className="mt-5"><CollapsibleTrigger asChild><Button variant="ghost" size="sm" className="px-0 text-primary">{tx("Choose when increases happen or calculate a rate", "Artış aylarını belirle veya oran hesapla")} <ChevronDown className="size-3.5" /></Button></CollapsibleTrigger><CollapsibleContent className="grid gap-4 pt-4"><section className="rounded-[14px] bg-card/65 p-4"><h4 className="text-[13px] font-semibold">{tx("Income increase", "Gelir artışı")}</h4><div className="mt-4 max-w-[300px]"><MonthPicker value={draft.raiseMonth} onValueChange={raiseMonth => update({ raiseMonth })} label={tx("Month the income increase takes effect", "Gelir artışının uygulanacağı ay")} /></div><IncomeHistoryCalculator currentIncome={draft.income} onApply={incomeGrowth => update({ incomeGrowth })} /></section><section className="rounded-[14px] bg-card/65 p-4"><h4 className="text-[13px] font-semibold">{tx("Rent increase", "Kira artışı")}</h4><div className="mt-4 grid gap-5 sm:grid-cols-2 sm:items-end"><MoneyInput id="next-rent" label={tx("Next monthly rent", "Sonraki aylık kira")} value={nextRent} onValueChange={setNextRent} /><MonthPicker value={draft.rentRenewal} onValueChange={rentRenewal => update({ rentRenewal })} label={tx("Month the rent increase takes effect", "Kira artışının uygulanacağı ay")} /></div>{hasNextRent && <div className="mt-4 flex flex-wrap items-center gap-3"><span className="rounded-[12px] bg-background px-3 py-2 text-[12px] font-semibold tabular-nums">{tx("Calculated", "Hesaplanan")} · {percent(observedRentRise)}</span><Button type="button" size="sm" variant={rentRiseApplied ? "outline" : "default"} disabled={rentRiseApplied} onClick={() => update({ rentGrowth: Math.round(observedRentRise * 10) / 10 })}>{rentRiseApplied ? tx("Applied", "Uygulandı") : tx("Use this increase", "Bu artışı kullan")}</Button></div>}</section></CollapsibleContent></Collapsible></div>
-              <div className="rounded-[18px] bg-[#f1f4fb] p-5 dark:bg-[#292d32]"><h3 className="text-[15px] font-semibold">{tx("Other assumptions", "Diğer varsayımlar")}</h3><div className="mt-4 grid gap-5 sm:grid-cols-2"><PercentInput id="expense-growth" label={<AssumptionFieldLabel label={tx("Annual increase in regular expenses", "Düzenli giderlerde yıllık artış")} badge={assumption} infoLabel={tx("About expense growth", "Gider artışı hakkında")} info={tx("This is your assumption for how regular living costs change each year.", "Düzenli yaşam giderlerinin her yıl nasıl değişeceğine ilişkin varsayımındır.")} />} value={draft.expenseGrowth} onValueChange={expenseGrowth => update({ expenseGrowth })} /><Field><FieldLabel htmlFor="horizon" className="flex items-center gap-1">{tx("Scenario length (years)", "Senaryo süresi (yıl)")}<FieldInfo label={tx("About scenario length", "Senaryo süresi hakkında")}>{tx("This only controls how many years Hearthline shows. It does not change the mortgage term.", "Yalnızca Hearthline’ın kaç yılı göstereceğini belirler. Kredi vadesini değiştirmez.")}</FieldInfo></FieldLabel><IntegerInput id="horizon" value={draft.horizon} onValueChange={horizon => update({ horizon })} min={1} max={40} /></Field></div></div>
-            </div>
-            <SupportInputs scenario={draft} update={update} />
+          {step === 2 && <section aria-labelledby="future-heading" className="max-w-[680px]"><span className="rounded-full bg-primary/8 px-2 py-1 text-[10px] font-semibold text-primary">{tx("Your assumptions", "Senin varsayımların")}</span><h2 id="future-heading" ref={headingRef} tabIndex={-1} className="mt-3 text-[25px] font-semibold tracking-[-.045em] outline-none">{tx("Tell Hearthline how the future should behave.", "Hearthline’a geleceğin nasıl değişmesini istediğini anlat.")}</h2>
+            <FutureAssumptions scenario={draft} update={update} />
           </section>}
           </div>
 
