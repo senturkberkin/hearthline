@@ -7,6 +7,8 @@ const fieldInfo=readFileSync(new URL('../design-preview/src/components/product/f
 const financialInput=readFileSync(new URL('../design-preview/src/components/product/financial-input.tsx',import.meta.url),'utf8');
 const home=readFileSync(new URL('../design-preview/src/pages/home.tsx',import.meta.url),'utf8');
 const monthPicker=readFileSync(new URL('../design-preview/src/components/product/month-picker.tsx',import.meta.url),'utf8');
+const incomeHistory=readFileSync(new URL('../design-preview/src/components/product/income-history-calculator.tsx',import.meta.url),'utf8');
+const rentGrowth=readFileSync(new URL('../design-preview/src/components/product/rent-growth-calculator.tsx',import.meta.url),'utf8');
 
 test('S01 setup asks for present-day facts before home and future assumptions',()=>{
   assert.match(setup,/tx\("Today", "Bugün"\).*tx\("The home", "Ev"\).*tx\("Future assumptions", "Gelecek"\)/s);
@@ -27,10 +29,10 @@ test('S02 field explanations reuse an accessible popover with a mobile-safe widt
 });
 
 test('S03 known next rent remains calculation-only until explicitly applied',()=>{
-  assert.match(setup,/id="next-rent"[\s\S]*?onValueChange=\{setNextRent\}/);
-  assert.match(setup,/tx\("Use this increase", "Bu artışı kullan"\)/);
-  assert.match(setup,/onClick=\{\(\) => update\(\{ rentGrowth: Math\.round\(observedRentRise \* 10\) \/ 10 \}\)\}/);
-  assert.match(setup,/tx\("Implied increase", "Hesaplanan artış"\)/);
+  assert.match(rentGrowth,/id="next-rent"[\s\S]*?onValueChange=\{setNextRent\}/);
+  assert.match(rentGrowth,/tx\("Use this increase", "Bu artışı kullan"\)/);
+  assert.match(rentGrowth,/onApply\(Math\.round\(impliedGrowth \* 10\) \/ 10\)/);
+  assert.match(rentGrowth,/tx\("Implied annual increase", "Hesaplanan yıllık artış"\)/);
 });
 
 test('S04 navigation says what comes next in both languages',()=>{
@@ -73,4 +75,13 @@ test('S09 month selection uses a compact native control in narrow assumption col
   assert.match(monthPicker,/<select value=\{value\}/);
   assert.match(monthPicker,/Array\.from\(\{ length: 12 \}/);
   assert.doesNotMatch(monthPicker,/ToggleGroup/);
+});
+
+test('S10 growth cards keep months visible and move optional calculators out of the card flow',()=>{
+  assert.match(setup,/id="income-growth"[\s\S]*?<MonthPicker value=\{draft\.raiseMonth\}/);
+  assert.match(setup,/id="rent-growth"[\s\S]*?<MonthPicker value=\{draft\.rentRenewal\}/);
+  assert.match(incomeHistory,/DialogPrimitive\.Content/);
+  assert.match(rentGrowth,/DialogPrimitive\.Content/);
+  assert.doesNotMatch(incomeHistory,/Collapsible/);
+  assert.doesNotMatch(rentGrowth,/Collapsible/);
 });
