@@ -1,10 +1,10 @@
 {
   "percentage": 31.49,
   "period": "2026-09",
-  "publishedAt": "2026-10-05T17:14:00.389Z",
-  "publicationDateBasis": "firstObservedInOfficialDataset",
-  "nextPublicationAt": "2026-11-01T00:00:00.000Z",
+  "publishedAt": "2026-10-05T10:00:00+03:00",
+  "publicationDateBasis": "verifiedBulletin",
+  "nextPublicationAt": "2026-11-03T10:00:00+03:00",
   "sourceName": "TÜİK DataBrowser — 12-month average CPI",
-  "sourceUrl": "https://veriportali.tuik.gov.tr/tr/search?q=T%C3%BCketici%20Fiyat%20Endeksi",
-  "updatedAt": "2026-10-05T17:14:00.389Z"
+  "sourceUrl": "https://veriportali.tuik.gov.tr/tr/press/58298/metadata",
+  "updatedAt": "2026-10-10T00:00:00+03:00"
 }

@@ -1,9 +1,10 @@
 {
-  "percentage": 31.79,
-  "period": "2026-08",
-  "publishedAt": "2026-09-03T10:00:00+03:00",
-  "nextPublicationAt": "2026-10-05T10:00:00+03:00",
-  "sourceName": "TÜİK — 12-month average CPI",
-  "sourceUrl": "https://veriportali.tuik.gov.tr/tr/press/58290",
-  "updatedAt": "2026-09-29T21:00:00+03:00"
+  "percentage": 31.49,
+  "period": "2026-09",
+  "publishedAt": "2026-10-05T10:00:00+03:00",
+  "publicationDateBasis": "verifiedBulletin",
+  "nextPublicationAt": "2026-11-03T10:00:00+03:00",
+  "sourceName": "TÜİK DataBrowser — 12-month average CPI",
+  "sourceUrl": "https://veriportali.tuik.gov.tr/tr/press/58298/metadata",
+  "updatedAt": "2026-10-10T00:00:00+03:00"
 }

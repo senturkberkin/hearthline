@@ -9,6 +9,11 @@ const home=readFileSync(new URL('../design-preview/src/pages/home.tsx',import.me
 const monthPicker=readFileSync(new URL('../design-preview/src/components/product/month-picker.tsx',import.meta.url),'utf8');
 const incomeHistory=readFileSync(new URL('../design-preview/src/components/product/income-history-calculator.tsx',import.meta.url),'utf8');
 const rentGrowth=readFileSync(new URL('../design-preview/src/components/product/rent-growth-calculator.tsx',import.meta.url),'utf8');
+const growthReferences=readFileSync(new URL('../design-preview/src/components/product/growth-reference-action.tsx',import.meta.url),'utf8');
+const rentReference=JSON.parse(readFileSync(new URL('../rent-reference.json',import.meta.url),'utf8'));
+const publicRentReference=JSON.parse(readFileSync(new URL('../design-preview/public/rent-reference.json',import.meta.url),'utf8'));
+const wageReference=JSON.parse(readFileSync(new URL('../design-preview/public/minimum-wage-reference.json',import.meta.url),'utf8'));
+const rentWorkflow=readFileSync(new URL('../.github/workflows/refresh-rent-reference.yml',import.meta.url),'utf8');
 
 test('S01 setup asks for present-day facts before home and future assumptions',()=>{
   assert.match(setup,/tx\("Today", "Bugün"\).*tx\("The home", "Ev"\).*tx\("Future assumptions", "Gelecek"\)/s);
@@ -84,4 +89,16 @@ test('S10 growth cards keep months visible and move optional calculators out of 
   assert.match(rentGrowth,/DialogPrimitive\.Content/);
   assert.doesNotMatch(incomeHistory,/Collapsible/);
   assert.doesNotMatch(rentGrowth,/Collapsible/);
+});
+
+test('S11 official growth shortcuts are dated, click-to-apply and kept current',()=>{
+  assert.match(setup,/<MinimumWageGrowthAction onUse=\{incomeGrowth => update\(\{ incomeGrowth \}\)\}/);
+  assert.match(setup,/<RentCeilingGrowthAction onUse=\{rentGrowth => update\(\{ rentGrowth \}\)\}/);
+  assert.match(growthReferences,/Use latest minimum-wage increase.*Son asgari ücret zammını kullan/);
+  assert.match(growthReferences,/Use current rent increase ceiling.*Güncel kira artış üst sınırını kullan/);
+  assert.match(growthReferences,/disabled=\{loading \|\| !sourceUrl \|\| stale\}/);
+  assert.equal(wageReference.percentage,27.01);
+  assert.match(wageReference.sourceUrl,/^https:\/\/(www\.)?csgb\.gov\.tr\//);
+  assert.deepEqual(publicRentReference,rentReference);
+  assert.match(rentWorkflow,/git add rent-reference\.json design-preview\/public\/rent-reference\.json/);
 });

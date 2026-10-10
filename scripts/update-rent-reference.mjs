@@ -20,7 +20,7 @@ const latest=latestTwelveMonthAverage(payload);
 if(latest.period < existing.period) throw new Error('Official dataset is older than saved reference');
 if(latest.period===existing.period && latest.percentage===existing.percentage) { await writeFile(reactPath,JSON.stringify(existing,null,2)+'\n'); console.log(`Already current: ${latest.period} · ${latest.percentage}%`); process.exit(0); }
 const now=new Date();
-const nextMonth=Date.UTC(now.getUTCFullYear(),now.getUTCMonth()+1,1);
+const nextMonth=Date.UTC(now.getUTCFullYear(),now.getUTCMonth()+1,7,7);
 const updated={
   percentage:latest.percentage,
   period:latest.period,
