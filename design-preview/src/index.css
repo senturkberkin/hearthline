@@ -250,9 +250,30 @@
   @page { size: A4 portrait; margin: 14mm; }
   html, body, #root, .report-shell { width: auto !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; color: #19283d !important; background: #fff !important; }
   .report-actions { display: none !important; }
+  html.dark .report-page {
+    --report-page: #fff;
+    --report-ink: #19283d;
+    --report-muted: #64748a;
+    --report-label: #526276;
+    --report-finding: #eaf1fa;
+    --report-finding-label: #41638b;
+    --report-guidance-today: #edf4ff;
+    --report-guidance-side: #f4f6f9;
+    --report-guidance-next: #e4eefc;
+    --report-negative: #b65361;
+    --report-chart: #f5f8fc;
+    --report-milestone: #f2f6fc;
+    --report-rule: #dbe4ef;
+    --report-grid: #e5ebf2;
+    --report-zero: #8c9aad;
+    --report-rent: #4b88d0;
+    --report-buy: #214b86;
+    color-scheme: light;
+  }
   .report-page { width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; color: var(--report-ink) !important; background: var(--report-page) !important; }
   .report-page, .report-page * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-  html.dark, html.dark body, html.dark #root, html.dark .report-shell { color: #f4f4f2 !important; background: #222324 !important; }
+  .report-logo-light { display: block !important; }
+  .report-logo-dark { display: none !important; }
   .report-reference { break-before: page; page-break-before: always; }
   .report-reference-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
   .report-section { break-inside: avoid; page-break-inside: avoid; }

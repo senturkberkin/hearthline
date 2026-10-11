@@ -1,13 +1,13 @@
-import { validateScenario, withPrincipal, type Scenario } from "./engine"
+import { normalizeScenario, validateScenario, type Scenario } from "./engine"
 
-export const CURRENT_SCENARIO_SCHEMA_VERSION = 1
+export const CURRENT_SCENARIO_SCHEMA_VERSION = 2
 export const SAVED_SCENARIOS_KEY = "hearthline:saved-scenarios"
 
 const numericFields = [
   "income", "rent", "livingCosts", "debt", "savings", "reserve", "propertyPrice", "downPayment",
   "upfrontSupport", "closingCosts", "renovation", "termYears", "rate", "ownerCosts",
   "monthlySupport", "supportMonths", "horizon", "incomeGrowth", "rentGrowth", "expenseGrowth",
-  "raiseMonth", "rentRenewal",
+  "startMonth", "raiseMonth", "rentRenewal",
 ] as const satisfies readonly (keyof Scenario)[]
 
 export type ScenarioPayload = Omit<Scenario, "principal">
@@ -38,10 +38,10 @@ export function scenarioToPayload(scenario: Scenario): ScenarioPayload {
 export function deserializeScenario(value: unknown): Scenario | null {
   if (!object(value) || numericFields.some(key => typeof value[key] !== "number" || !Number.isFinite(value[key]))) return null
   if (value.rateMode !== "monthly" && value.rateMode !== "annual") return null
-  if (!["raiseMonth", "rentRenewal"].every(key => Number.isInteger(value[key]) && (value[key] as number) >= 0 && (value[key] as number) <= 11)) return null
+  if (!["startMonth", "raiseMonth", "rentRenewal"].every(key => Number.isInteger(value[key]) && (value[key] as number) >= 0 && (value[key] as number) <= 11)) return null
   const payload = Object.fromEntries(numericFields.map(key => [key, value[key]])) as unknown as ScenarioPayload
   payload.rateMode = value.rateMode
-  const scenario = withPrincipal(payload as Scenario)
+  const scenario = normalizeScenario(payload as Scenario)
   return validateScenario(scenario) === null ? scenario : null
 }
 
@@ -56,10 +56,13 @@ function validRecord(value: unknown): SavedScenarioRecord | null {
   return scenario ? { id: value.id, name: value.name, createdAt: value.createdAt, updatedAt: value.updatedAt, schemaVersion: CURRENT_SCENARIO_SCHEMA_VERSION, payload: scenarioToPayload(scenario) } : null
 }
 
-// Version 0 was a full-Scenario record shape. Its derived principal is discarded.
+// Versions 0 and 1 predate calendar-relative projections. January preserves
+// their former implicit timing instead of changing results when they reopen.
 export function migrateScenario(value: unknown): SavedScenarioRecord | null {
-  if (!object(value) || value.schemaVersion !== 0) return null
-  return validRecord({ ...value, schemaVersion: 1, payload: value.scenario })
+  if (!object(value) || (value.schemaVersion !== 0 && value.schemaVersion !== 1)) return null
+  const legacyPayload = value.schemaVersion === 0 ? value.scenario : value.payload
+  if (!object(legacyPayload)) return null
+  return validRecord({ ...value, schemaVersion: CURRENT_SCENARIO_SCHEMA_VERSION, payload: { ...legacyPayload, startMonth: 0 } })
 }
 
 function browserStorage(): StorageLike | null {
@@ -80,10 +83,10 @@ export function createSavedScenarioStore(options: { storage?: StorageLike | null
     try { parsed = JSON.parse(raw) } catch { return { records: [], invalidCount: 0, issue: "malformed", opaque: [] } }
     if (!object(parsed) || typeof parsed.schemaVersion !== "number" || !Array.isArray(parsed.records)) return { records: [], invalidCount: 0, issue: "malformed", opaque: [] }
     if (parsed.schemaVersion > CURRENT_SCENARIO_SCHEMA_VERSION) return { records: [], invalidCount: 0, issue: "future", opaque: [] }
-    if (parsed.schemaVersion !== 0 && parsed.schemaVersion !== 1) return { records: [], invalidCount: 0, issue: "malformed", opaque: [] }
+    if (![0, 1, CURRENT_SCENARIO_SCHEMA_VERSION].includes(parsed.schemaVersion)) return { records: [], invalidCount: 0, issue: "malformed", opaque: [] }
     const records: SavedScenarioRecord[] = [], opaque: unknown[] = [], seen = new Set<string>()
     for (const candidate of parsed.records) {
-      const record = parsed.schemaVersion === 0 ? migrateScenario(candidate) : validRecord(candidate)
+      const record = parsed.schemaVersion < CURRENT_SCENARIO_SCHEMA_VERSION ? migrateScenario(candidate) : validRecord(candidate)
       if (record && !seen.has(record.id)) { records.push(record); seen.add(record.id) }
       else opaque.push(candidate)
     }
@@ -116,7 +119,7 @@ export function createSavedScenarioStore(options: { storage?: StorageLike | null
     create(name: string, scenario: Scenario): WriteResult {
       const payload = deserializeScenario(scenarioToPayload(scenario))
       if (!name.trim() || !payload) return { record: null, issue: "invalid" }
-      return mutate(records => { const date = now(); const record: SavedScenarioRecord = { id: uniqueId(records), name, createdAt: date, updatedAt: date, schemaVersion: 1, payload: scenarioToPayload(payload) }; records.unshift(record); return record })
+      return mutate(records => { const date = now(); const record: SavedScenarioRecord = { id: uniqueId(records), name, createdAt: date, updatedAt: date, schemaVersion: CURRENT_SCENARIO_SCHEMA_VERSION, payload: scenarioToPayload(payload) }; records.unshift(record); return record })
     },
     update(recordId: string, scenario: Scenario): WriteResult {
       const payload = deserializeScenario(scenarioToPayload(scenario))

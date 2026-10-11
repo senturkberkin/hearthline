@@ -72,15 +72,16 @@ test('R05 print composition is separate from app controls and has A4 rules',()=>
   assert.match(css,/@page \{ size: A4 portrait/);
   assert.match(css,/\.report-actions \{ display: none !important/);
 });
-test('R08 printed report follows the selected light or dark theme',()=>{
+test('R08 screen preview follows the app theme while printed output uses a dedicated light palette',()=>{
   const report=readFileSync(new URL('../design-preview/src/pages/print-report.tsx',import.meta.url),'utf8');
   const css=readFileSync(new URL('../design-preview/src/index.css',import.meta.url),'utf8');
   assert.match(css,/\.dark \.report-page \{[\s\S]*?--report-page: #222324/);
   assert.match(css,/\.report-page \{[\s\S]*?--report-page: #fff/);
   assert.match(css,/\.report-page \{ width: 100% !important;[^\n]*background: var\(--report-page\) !important/);
-  assert.match(css,/html\.dark, html\.dark body, html\.dark #root, html\.dark \.report-shell/);
+  assert.match(css,/@media print \{[\s\S]*?html\.dark \.report-page \{[\s\S]*?--report-page: #fff;[\s\S]*?color-scheme: light;/);
   assert.match(css,/\.dark \.report-actions \[data-variant="outline"\] \{ color: #f4f4f2/);
-  assert.doesNotMatch(css,/\.dark \.report-page \{ background-color: #fff !important/);
+  assert.match(css,/@media print \{[\s\S]*?\.report-logo-light \{ display: block !important; \}/);
+  assert.match(css,/@media print \{[\s\S]*?\.report-logo-dark \{ display: none !important; \}/);
   assert.match(report,/hearthline-icon-dark\.svg/);
   assert.match(report,/stroke="var\(--report-buy\)"/);
 });

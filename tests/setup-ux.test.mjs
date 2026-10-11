@@ -14,6 +14,8 @@ const rentReference=JSON.parse(readFileSync(new URL('../rent-reference.json',imp
 const publicRentReference=JSON.parse(readFileSync(new URL('../design-preview/public/rent-reference.json',import.meta.url),'utf8'));
 const wageReference=JSON.parse(readFileSync(new URL('../design-preview/public/minimum-wage-reference.json',import.meta.url),'utf8'));
 const rentWorkflow=readFileSync(new URL('../.github/workflows/refresh-rent-reference.yml',import.meta.url),'utf8');
+const main=readFileSync(new URL('../design-preview/src/main.tsx',import.meta.url),'utf8');
+const styles=readFileSync(new URL('../design-preview/src/index.css',import.meta.url),'utf8');
 
 test('S01 setup asks for present-day facts before home and future assumptions',()=>{
   assert.match(setup,/tx\("Today", "Bugün"\).*tx\("The home", "Ev"\).*tx\("Future assumptions", "Gelecek"\)/s);
@@ -94,11 +96,42 @@ test('S10 growth cards keep months visible and move optional calculators out of 
 test('S11 official growth shortcuts are dated, click-to-apply and kept current',()=>{
   assert.match(setup,/<MinimumWageGrowthAction onUse=\{incomeGrowth => update\(\{ incomeGrowth \}\)\}/);
   assert.match(setup,/<RentCeilingGrowthAction onUse=\{rentGrowth => update\(\{ rentGrowth \}\)\}/);
-  assert.match(growthReferences,/Use latest minimum-wage increase.*Son asgari ücret zammını kullan/);
-  assert.match(growthReferences,/Use current rent increase ceiling.*Güncel kira artış üst sınırını kullan/);
+  assert.match(growthReferences,/Use wage increase as annual assumption.*Ücret artışını yıllık varsayım olarak kullan/);
+  assert.match(growthReferences,/Use rent ceiling as annual assumption.*Kira üst sınırını yıllık varsayım olarak kullan/);
+  assert.match(growthReferences,/Applied every year in this scenario; not a forecast/);
+  assert.match(growthReferences,/Bu senaryoda her yıl uygulanır; tahmin değildir/);
   assert.match(growthReferences,/disabled=\{loading \|\| !sourceUrl \|\| stale\}/);
   assert.equal(wageReference.percentage,27.01);
   assert.match(wageReference.sourceUrl,/^https:\/\/(www\.)?csgb\.gov\.tr\//);
   assert.deepEqual(publicRentReference,rentReference);
   assert.match(rentWorkflow,/git add rent-reference\.json design-preview\/public\/rent-reference\.json/);
+});
+
+test('S12 growth inputs expose the strict lower boundary and explain rejected values',()=>{
+  for (const id of ['income-growth','rent-growth','expense-growth']) {
+    assert.match(setup,new RegExp(`id="${id}"[\\s\\S]*?min=\\{-99\\.9\\}`));
+  }
+  assert.match(setup,/Annual changes must be greater than −100%/);
+  assert.match(setup,/Yıllık değişimler −%100'den büyük olmalı/);
+});
+
+test('S13 monthly support is visibly capped by the current mortgage payment',()=>{
+  const support=readFileSync(new URL('../design-preview/src/components/product/support-inputs.tsx',import.meta.url),'utf8');
+  assert.match(support,/const payment = monthlySupportLimit\(scenario\)/);
+  assert.match(support,/max=\{payment\}/);
+  assert.match(support,/disabled=\{payment <= 0\}/);
+  assert.match(support,/Monthly support cannot exceed the mortgage payment/);
+  assert.match(support,/Aylık destek kredi taksitini aşamaz/);
+});
+
+test('S14 a fresh direct results visit redirects instead of presenting the demo as personal',()=>{
+  assert.match(main,/function ResultsRoute\(\)/);
+  assert.match(main,/if \(isExample\) window\.location\.replace\(sitePath\("\/setup\/"\)\)/);
+  assert.match(main,/path\.endsWith\("\/results"\) \? <ResultsRoute \/>/);
+});
+
+test('S15 print media uses the dedicated light report palette even when the app is dark',()=>{
+  assert.match(styles,/@media print \{[\s\S]*?html\.dark \.report-page \{[\s\S]*?--report-page: #fff;[\s\S]*?color-scheme: light;/);
+  assert.match(styles,/@media print \{[\s\S]*?\.report-logo-light \{ display: block !important; \}/);
+  assert.match(styles,/@media print \{[\s\S]*?\.report-logo-dark \{ display: none !important; \}/);
 });

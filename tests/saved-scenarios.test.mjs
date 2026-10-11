@@ -69,7 +69,7 @@ test('P05 malformed JSON is preserved and never overwritten by save',()=>{
 test('P06 invalid individual records are isolated and preserved on later writes',()=>{
   const valid=store().create('Valid',scenario).record;
   const corrupt={id:'broken',payload:{income:'no'}};
-  const storage=memory(JSON.stringify({schemaVersion:1,records:[valid,corrupt]})), service=store(storage);
+  const storage=memory(JSON.stringify({schemaVersion:saved.CURRENT_SCENARIO_SCHEMA_VERSION,records:[valid,corrupt]})), service=store(storage);
   assert.equal(service.list().records.length,1);
   assert.equal(service.list().invalidCount,1);
   service.create('Another',scenario);
@@ -88,9 +88,31 @@ test('P08 version-zero full-Scenario record migrates on first write without deri
   assert.equal(service.list().records[0].payload.income,75000);
   service.rename('old','Renamed');
   const raw=JSON.parse(storage.values.get(saved.SAVED_SCENARIOS_KEY));
-  assert.equal(raw.schemaVersion,1);
-  assert.equal(raw.records[0].schemaVersion,1);
+  assert.equal(raw.schemaVersion,saved.CURRENT_SCENARIO_SCHEMA_VERSION);
+  assert.equal(raw.records[0].schemaVersion,saved.CURRENT_SCENARIO_SCHEMA_VERSION);
   assert.equal('principal' in raw.records[0].payload,false);
+  assert.equal(raw.records[0].payload.startMonth,0);
+});
+test('P11 version-one records migrate to a January start without changing their prior timing',()=>{
+  const payload=saved.scenarioToPayload(scenario);
+  delete payload.startMonth;
+  const legacy={id:'v1',name:'Version one',createdAt:'2026-09-01T00:00:00Z',updatedAt:'2026-09-01T00:00:00Z',schemaVersion:1,payload};
+  const storage=memory(JSON.stringify({schemaVersion:1,records:[legacy]})), service=store(storage);
+  const restored=service.get('v1');
+  assert.equal(restored.payload.startMonth,0);
+  const restoredScenario=saved.deserializeScenario(restored.payload);
+  assert.equal(engine.calculate(engine.withPrincipal({...scenario,startMonth:0})).rows[12].income,engine.calculate(restoredScenario).rows[12].income);
+  service.rename('v1','Migrated');
+  const raw=JSON.parse(storage.values.get(saved.SAVED_SCENARIOS_KEY));
+  assert.equal(raw.schemaVersion,saved.CURRENT_SCENARIO_SCHEMA_VERSION);
+  assert.equal(raw.records[0].schemaVersion,saved.CURRENT_SCENARIO_SCHEMA_VERSION);
+});
+
+test('P12 malformed growth is isolated and excess monthly support is normalized on load',()=>{
+  const payload=saved.scenarioToPayload(scenario);
+  assert.equal(saved.deserializeScenario({...payload,incomeGrowth:-100}),null);
+  const payment=engine.mortgagePayment(scenario);
+  assert.equal(saved.deserializeScenario({...payload,monthlySupport:payment*2}).monthlySupport,engine.monthlySupportLimit(scenario));
 });
 test('P09 storage unavailable and write failure leave calculator payload untouched',()=>{
   assert.equal(store(null).create('No storage',scenario).issue,'unavailable');
@@ -105,7 +127,7 @@ test('P10 saved payload must pass runtime validation when opened',()=>{
   const record=service.create('Valid',scenario).record;
   assert.equal(saved.deserializeScenario(service.get(record.id).payload).principal,4150000);
   const invalid={...record,payload:{...record.payload,termYears:1000000}};
-  storage.setItem(saved.SAVED_SCENARIOS_KEY,JSON.stringify({schemaVersion:1,records:[invalid]}));
+  storage.setItem(saved.SAVED_SCENARIOS_KEY,JSON.stringify({schemaVersion:saved.CURRENT_SCENARIO_SCHEMA_VERSION,records:[invalid]}));
   assert.equal(service.get(record.id),null);
   assert.equal(service.list().invalidCount,1);
 });

@@ -69,9 +69,10 @@ type FinancialInputProps = {
   emptyWhenZero?: boolean
   min?: number
   max?: number
+  onConstraintViolation?: (attempted: number, bounded: number) => void
 }
 
-function FinancialInput({ id, label, value, onValueChange, locale, className, disabled, invalid, hideLabel, emptyWhenZero, min, max, decimals, unit }: FinancialInputProps & { decimals: boolean; unit: string }) {
+function FinancialInput({ id, label, value, onValueChange, locale, className, disabled, invalid, hideLabel, emptyWhenZero, min, max, onConstraintViolation, decimals, unit }: FinancialInputProps & { decimals: boolean; unit: string }) {
   const { language } = useProduct()
   locale ??= language === "tr" ? "tr-TR" : "en-US"
   const inputRef = React.useRef<HTMLInputElement>(null)
@@ -114,6 +115,7 @@ function FinancialInput({ id, label, value, onValueChange, locale, className, di
           lastValue.current = bounded
           setText(nextText)
           onValueChange(lastValue.current)
+          if (bounded !== finite) onConstraintViolation?.(finite, bounded)
         }}
         inputMode={decimals ? "decimal" : "numeric"}
         autoComplete="off"

@@ -15,7 +15,7 @@ const {deriveResultGuidance} = await import(guidanceUrl);
 
 const facts = {income:90000,rent:30000,livingCosts:20000,savings:600000,propertyPrice:4000000};
 function result(overrides = {}) {
-  const scenario = engine.withPrincipal({...engine.scenarioFromFacts(facts),downPayment:500000,rate:2, ...overrides});
+  const scenario = engine.withPrincipal({...engine.scenarioFromFacts(facts,2.25,0),downPayment:500000,rate:2, ...overrides});
   return {scenario, guidance:deriveResultGuidance(scenario,engine.calculate(scenario))};
 }
 
@@ -149,7 +149,7 @@ test('G24 earlier end month is an exception; support disappears at its boundary'
   assert.equal(projection.rows[6].support,0);
 });
 test('G25 repeated lower-price tests move through payment gap, general budget gap and positive buying cash', () => {
-  let scenario=engine.withPrincipal({...engine.scenarioFromFacts({income:40000,rent:28000,livingCosts:22000,savings:500000,propertyPrice:4500000}),incomeGrowth:20,rentGrowth:6});
+  let scenario=engine.withPrincipal({...engine.scenarioFromFacts({income:40000,rent:28000,livingCosts:22000,savings:500000,propertyPrice:4500000},2.25,0),incomeGrowth:20,rentGrowth:6});
   const codes=[];
   for (let i=0;i<=14;i++) {
     codes.push(deriveResultGuidance(scenario,engine.calculate(scenario)).code);

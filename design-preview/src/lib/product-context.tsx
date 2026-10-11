@@ -1,5 +1,5 @@
 import * as React from "react"
-import { scenarioFromFacts, validateScenario, withPrincipal, type Scenario } from "@/lib/engine"
+import { normalizeScenario, scenarioFromFacts, type Scenario } from "@/lib/engine"
 import { createSavedScenarioStore, deserializeScenario, serializeScenario, type SavedScenarioRecord, type StorageIssue } from "@/lib/saved-scenarios"
 
 export type Language = "en" | "tr"
@@ -34,7 +34,8 @@ function readScenario(): Scenario {
     const restored = active ? deserializeScenario(active.payload) : null
     if (restored) return restored
     const saved = JSON.parse(sessionStorage.getItem(scenarioKey) || "null")
-    if (saved && [null, "savings"].includes(validateScenario(saved))) return withPrincipal(saved)
+    const restoredSession = saved && deserializeScenario(saved.startMonth === undefined ? { ...saved, startMonth: 0 } : saved)
+    if (restoredSession) return restoredSession
   } catch { /* Storage may be unavailable. */ }
   return exampleScenario
 }
@@ -110,7 +111,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
   const language = settings.language
   const value: ProductContextValue = {
     scenario, isExample,
-    setScenario: next => { setScenario(next); setIsExample(false); try { sessionStorage.setItem(scenarioActiveKey, "1") } catch { /* Keep state in memory. */ } },
+    setScenario: next => { setScenario(current => normalizeScenario(typeof next === "function" ? next(current) : next)); setIsExample(false); try { sessionStorage.setItem(scenarioActiveKey, "1") } catch { /* Keep state in memory. */ } },
     clearScenario: () => { detachSaved(); setScenario(exampleScenario); setIsExample(true); try { sessionStorage.removeItem(scenarioKey); sessionStorage.removeItem(scenarioActiveKey) } catch { /* No stored scenario. */ } },
     savedScenarios, activeSavedId, saveIssue, saveStatus, reportOpen, setReportOpen,
     saveScenario: name => {

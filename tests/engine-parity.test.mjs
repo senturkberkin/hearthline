@@ -15,7 +15,7 @@ const current = await import(`data:text/javascript;base64,${Buffer.from(js).toSt
 
 function check(facts, overrides = {}) {
   const oldScenario = {...legacy.scenarioFromFacts(facts), ...overrides};
-  const newScenario = {...current.scenarioFromFacts(facts), ...overrides};
+  const newScenario = {...current.scenarioFromFacts(facts,2.25,0), ...overrides};
   assert.equal(newScenario.principal, oldScenario.principal);
   const oldResult = legacy.calculate(oldScenario);
   const newResult = current.calculate(newScenario);
@@ -79,4 +79,58 @@ test('E03 validation rejects invalid optional values and unbounded projection le
   assert.equal(current.validateScenario({...base,horizon:40,termYears:40}),null);
   assert.equal(current.validateScenario({...base,rate:100}),null);
   assert.equal(current.validateScenario({...base,rate:100.01}),'range');
+});
+
+test('CAL-01 calendar-labelled growth months are relative to an October scenario start', () => {
+  const base={...current.scenarioFromFacts({income:100,rent:10,livingCosts:1,savings:100,propertyPrice:1000},0,9),incomeGrowth:10,rentGrowth:20,raiseMonth:11,rentRenewal:0,horizon:3};
+  const rows=current.calculate(base).rows;
+  assert.equal(rows[1].income,100);
+  assert.ok(Math.abs(rows[2].income-110)<1e-9); // December, two months after October.
+  assert.ok(Math.abs(rows[13].income-110)<1e-9);
+  assert.ok(Math.abs(rows[14].income-121)<1e-9); // Repeats the following December.
+  assert.equal(rows[2].rent,10);
+  assert.equal(rows[3].rent,12); // January follows an October start by three months.
+  assert.equal(rows[14].rent,12);
+  assert.ok(Math.abs(rows[15].rent-14.4)<1e-9);
+});
+
+test('CAL-02 selecting the scenario start month waits until the next annual boundary', () => {
+  const base={...current.scenarioFromFacts({income:100,rent:10,livingCosts:1,savings:100,propertyPrice:1000},0,9),incomeGrowth:10,rentGrowth:20,raiseMonth:9,rentRenewal:9,horizon:2};
+  const rows=current.calculate(base).rows;
+  assert.equal(rows[0].income,100);
+  assert.equal(rows[11].income,100);
+  assert.ok(Math.abs(rows[12].income-110)<1e-9);
+  assert.equal(rows[11].rent,10);
+  assert.equal(rows[12].rent,12);
+});
+
+test('CAL-03 growth validation requires every annual change to stay above minus 100 percent', () => {
+  const base=current.scenarioFromFacts({income:75000,rent:28000,livingCosts:22000,savings:500000,propertyPrice:4500000},2.25,9);
+  for (const key of ['incomeGrowth','rentGrowth','expenseGrowth']) {
+    assert.equal(current.validateScenario({...base,[key]:-99.9}),null,`${key} accepts -99.9`);
+    assert.equal(current.validateScenario({...base,[key]:-100}),'growth',`${key} rejects -100`);
+    assert.equal(current.validateScenario({...base,[key]:-150}),'growth',`${key} rejects below -100`);
+  }
+});
+
+test('INPUT-01 canonical monthly support follows the mortgage payment while calculate keeps its defensive clamp', () => {
+  const base=current.withPrincipal({...current.scenarioFromFacts({income:75000,rent:28000,livingCosts:22000,savings:2000000,propertyPrice:4500000},2.25,9),downPayment:500000});
+  const payment=current.mortgagePayment(base);
+  const limit=current.monthlySupportLimit(base);
+  const below=current.normalizeScenario({...base,monthlySupport:Math.floor(limit/2),supportMonths:12});
+  const equal=current.normalizeScenario({...base,monthlySupport:limit,supportMonths:12});
+  const above=current.normalizeScenario({...base,monthlySupport:payment*2,supportMonths:12});
+  assert.equal(below.monthlySupport,Math.floor(limit/2));
+  assert.equal(equal.monthlySupport,limit);
+  assert.equal(above.monthlySupport,limit);
+  assert.equal(current.calculate({...base,monthlySupport:payment*2,supportMonths:12}).rows[0].support,payment);
+
+  const lowerPayment=current.normalizeScenario({...above,downPayment:2000000});
+  assert.ok(lowerPayment.monthlySupport < payment);
+  assert.equal(lowerPayment.monthlySupport,current.monthlySupportLimit(lowerPayment));
+
+  const noLoan=current.normalizeScenario({...base,downPayment:base.propertyPrice,monthlySupport:1000,supportMonths:12});
+  assert.equal(current.mortgagePayment(noLoan),0);
+  assert.equal(noLoan.monthlySupport,0);
+  assert.equal(noLoan.supportMonths,0);
 });

@@ -4,7 +4,7 @@ export type Scenario = {
   propertyPrice: number; downPayment: number; upfrontSupport: number; closingCosts: number; renovation: number;
   principal: number; termYears: number; rate: number; rateMode: "monthly" | "annual";
   ownerCosts: number; monthlySupport: number; supportMonths: number; horizon: number;
-  incomeGrowth: number; rentGrowth: number; expenseGrowth: number; raiseMonth: number; rentRenewal: number;
+  incomeGrowth: number; rentGrowth: number; expenseGrowth: number; startMonth: number; raiseMonth: number; rentRenewal: number;
 }
 
 export type ProjectionRow = {
@@ -13,10 +13,10 @@ export type ProjectionRow = {
   rentLiquid: number; buyLiquid: number; cumulativeRent: number; cumulativeInterest: number; principalRepaid: number;
 }
 
-export function scenarioFromFacts(f: Pick<Scenario, "income" | "rent" | "livingCosts" | "savings" | "propertyPrice">, rate = 2.25): Scenario {
+export function scenarioFromFacts(f: Pick<Scenario, "income" | "rent" | "livingCosts" | "savings" | "propertyPrice">, rate = 2.25, startMonth = new Date().getMonth()): Scenario {
   const reserve = Math.min(f.savings, 3 * (f.rent + f.livingCosts))
   const downPayment = Math.min(f.propertyPrice, Math.max(0, f.savings - reserve))
-  return { ...f, reserve, downPayment, incomeGrowth: 0, rentGrowth: 0, expenseGrowth: 0, debt: 0, raiseMonth: 0, rentRenewal: 0, upfrontSupport: 0, closingCosts: 0, renovation: 0, principal: Math.max(0, f.propertyPrice - downPayment), termYears: 10, rate, rateMode: "monthly", ownerCosts: 0, monthlySupport: 0, supportMonths: 0, horizon: 10 }
+  return { ...f, reserve, downPayment, incomeGrowth: 0, rentGrowth: 0, expenseGrowth: 0, debt: 0, startMonth, raiseMonth: 0, rentRenewal: 0, upfrontSupport: 0, closingCosts: 0, renovation: 0, principal: Math.max(0, f.propertyPrice - downPayment), termYears: 10, rate, rateMode: "monthly", ownerCosts: 0, monthlySupport: 0, supportMonths: 0, horizon: 10 }
 }
 
 export function monthlyPayment(principal: number, monthlyRate: number, months: number) {
@@ -45,10 +45,10 @@ export function calculate(d: Scenario) {
   let cumulativeRent = 0, cumulativeInterest = 0, principalRepaid = 0
   const rows: ProjectionRow[] = []
   for (let m = 0; m < months; m++) {
-    const month = m % 12
-    if (m > 0 && month === Number(d.raiseMonth)) income *= 1 + d.incomeGrowth / 100
-    if (m > 0 && month === Number(d.rentRenewal)) rent *= 1 + d.rentGrowth / 100
-    if (m > 0 && month === 0) costs *= 1 + d.expenseGrowth / 100
+    const calendarMonth = (d.startMonth + m) % 12
+    if (m > 0 && calendarMonth === Number(d.raiseMonth)) income *= 1 + d.incomeGrowth / 100
+    if (m > 0 && calendarMonth === Number(d.rentRenewal)) rent *= 1 + d.rentGrowth / 100
+    if (m > 0 && m % 12 === 0) costs *= 1 + d.expenseGrowth / 100
     const interest = m < loanMonths ? balance * monthlyRate : 0
     const paid = m < loanMonths ? Math.min(payment, balance + interest) : 0
     const principalPart = Math.max(0, paid - interest)
@@ -76,11 +76,13 @@ export function firstMonth(rows: ProjectionRow[], test: (row: ProjectionRow) => 
 export function independentMonth(_d: Scenario, r: Projection) { return firstMonth(r.rows, row => row.buySurplus - row.support >= 0 && r.rows.slice(row.m).every(later => later.buySurplus - later.support >= 0)) }
 
 export function validateScenario(d: Scenario): string | null {
-  if (![d.income, d.rent, d.propertyPrice, d.livingCosts, d.savings, d.reserve, d.downPayment, d.rate, d.termYears, d.horizon, d.upfrontSupport, d.monthlySupport, d.supportMonths, d.closingCosts, d.renovation, d.ownerCosts, d.debt, d.incomeGrowth, d.rentGrowth, d.expenseGrowth, d.raiseMonth, d.rentRenewal].every(Number.isFinite)) return "invalid"
+  if (![d.income, d.rent, d.propertyPrice, d.livingCosts, d.savings, d.reserve, d.downPayment, d.rate, d.termYears, d.horizon, d.upfrontSupport, d.monthlySupport, d.supportMonths, d.closingCosts, d.renovation, d.ownerCosts, d.debt, d.incomeGrowth, d.rentGrowth, d.expenseGrowth, d.startMonth, d.raiseMonth, d.rentRenewal].every(Number.isFinite)) return "invalid"
   if (d.income <= 0 || d.rent <= 0 || d.propertyPrice <= 0 || d.termYears <= 0 || d.horizon <= 0) return "positive"
   if (!Number.isInteger(d.termYears) || !Number.isInteger(d.horizon) || !Number.isInteger(d.supportMonths) || d.termYears > 40 || d.horizon > 40) return "range"
   if ((d.rateMode !== "monthly" && d.rateMode !== "annual") || d.rate > (d.rateMode === "monthly" ? 100 : 1200)) return "range"
   if ([d.livingCosts, d.savings, d.reserve, d.downPayment, d.rate, d.upfrontSupport, d.monthlySupport, d.supportMonths, d.closingCosts, d.renovation, d.ownerCosts, d.debt].some(value => value < 0)) return "negative"
+  if ([d.incomeGrowth, d.rentGrowth, d.expenseGrowth].some(value => value <= -100)) return "growth"
+  if (![d.startMonth, d.raiseMonth, d.rentRenewal].every(value => Number.isInteger(value) && value >= 0 && value <= 11)) return "range"
   if (d.downPayment + d.upfrontSupport > d.propertyPrice) return "contribution"
   if (d.downPayment + d.closingCosts + d.renovation > d.savings) return "savings"
   const projection = calculate(withPrincipal(d))
@@ -89,3 +91,22 @@ export function validateScenario(d: Scenario): string | null {
 }
 
 export function withPrincipal(d: Scenario): Scenario { return { ...d, principal: Math.max(0, d.propertyPrice - d.downPayment - d.upfrontSupport) } }
+
+export function mortgagePayment(d: Scenario) {
+  const scenario = withPrincipal(d)
+  const monthlyRate = scenario.rateMode === "monthly" ? scenario.rate / 100 : scenario.rate / 1200
+  return monthlyPayment(scenario.principal, monthlyRate, scenario.termYears * 12)
+}
+
+export function monthlySupportLimit(d: Scenario) {
+  const payment = mortgagePayment(d)
+  return Number.isFinite(payment) ? Math.floor(Math.max(0, payment)) : 0
+}
+
+// Canonical UI and persisted state never promise more monthly help than the
+// mortgage can receive. calculate() keeps its own clamp as a defensive guard.
+export function normalizeScenario(d: Scenario): Scenario {
+  const scenario = withPrincipal(d)
+  const monthlySupport = Math.min(Math.max(0, scenario.monthlySupport), monthlySupportLimit(scenario))
+  return { ...scenario, monthlySupport, supportMonths: monthlySupport > 0 ? scenario.supportMonths : 0 }
+}
