@@ -42,7 +42,7 @@ test('S03 known next rent remains calculation-only until explicitly applied',()=
   assert.match(rentGrowth,/id="next-rent"[\s\S]*?onValueChange=\{setNextRent\}/);
   assert.match(rentGrowth,/tx\("Use this increase", "Bu artışı kullan"\)/);
   assert.match(rentGrowth,/onApply\(Math\.round\(impliedGrowth \* 10\) \/ 10\)/);
-  assert.match(rentGrowth,/tx\("Implied annual increase", "Hesaplanan yıllık artış"\)/);
+  assert.match(rentGrowth,/tx\("Implied annual increase", "Hesaplanan artış oranı"\)/);
 });
 
 test('S04 navigation says what comes next in both languages',()=>{
@@ -117,7 +117,10 @@ test('S11 official growth shortcuts are dated, click-to-apply and kept current',
   assert.match(growthReferences,/Use rent ceiling.*Kira üst sınırını kullan/);
   assert.doesNotMatch(growthReferences,/Applied every year in this scenario; not a forecast/);
   assert.doesNotMatch(growthReferences,/Bu senaryoda her yıl uygulanır; tahmin değildir/);
-  assert.match(growthReferences,/disabled=\{loading \|\| !sourceUrl \|\| stale\}/);
+  assert.match(growthReferences,/Apply official preset.*Resmî oranı uygula/);
+  assert.match(growthReferences,/border border-primary\/30 bg-primary/);
+  assert.match(growthReferences,/disabled=\{loading \|\| unavailableOrStale\}/);
+  assert.match(growthReferences,/<a href=\{sourceUrl\}/);
   assert.equal(wageReference.percentage,27.01);
   assert.match(wageReference.sourceUrl,/^https:\/\/(www\.)?csgb\.gov\.tr\//);
   assert.deepEqual(publicRentReference,rentReference);
@@ -129,7 +132,10 @@ test('S12 growth inputs expose the strict lower boundary and explain rejected va
     assert.match(futureAssumptions,new RegExp(`id="${id}"[\\s\\S]*?min=\\{-99\\.9\\}`));
   }
   assert.match(futureAssumptions,/Annual changes must be greater than −100%/);
-  assert.match(futureAssumptions,/Yıllık değişimler −%100'den büyük olmalı/);
+  assert.match(futureAssumptions,/Artış oranları −%100'den büyük olmalı/);
+  assert.match(futureAssumptions,/Yıllık gelir artış oranı/);
+  assert.match(futureAssumptions,/Yıllık kira artış oranı/);
+  assert.match(futureAssumptions,/Gider artış oranı/);
 });
 
 test('S13 monthly support is visibly capped by the current mortgage payment',()=>{

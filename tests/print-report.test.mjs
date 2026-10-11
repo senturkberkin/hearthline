@@ -38,7 +38,7 @@ test('R03 entered family support appears only when present',()=>{
 test('R04 English and Turkish mark future rates as user assumptions, not forecasts',()=>{
   const en=buildReportModel(base,'en',null,date), tr=buildReportModel(base,'tr',null,date);
   assert.ok(en.assumptions.some(item=>item.label==='Annual income change'));
-  assert.ok(tr.assumptions.some(item=>item.label==='Yıllık gelir değişimi'));
+  assert.ok(tr.assumptions.some(item=>item.label==='Yıllık gelir artış oranı'));
   assert.ok(en.assumptions.some(item=>item.label==='Income raise month' && item.value==='January'));
   assert.ok(tr.assumptions.some(item=>item.label==='Kira yenileme ayı' && item.value==='Ocak'));
   assert.match(en.disclaimer,/not a forecast/);

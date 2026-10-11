@@ -24,7 +24,7 @@ export function IncomeHistoryCalculator({ currentIncome, onApply }: { currentInc
       <div className="mt-5">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[305px] table-fixed text-left text-[12px]">
-            <thead><tr className="text-muted-foreground"><th scope="col" className="w-[58px] pb-2 font-medium">{tx("Year", "Yıl")}</th><th scope="col" className="pb-2 font-medium">{tx("Monthly net pay", "Aylık net gelir")}</th><th scope="col" className="w-[80px] pb-2 text-right font-medium">{tx("Change", "Değişim")}</th></tr></thead>
+            <thead><tr className="text-muted-foreground"><th scope="col" className="w-[58px] pb-2 font-medium">{tx("Year", "Yıl")}</th><th scope="col" className="pb-2 font-medium">{tx("Monthly net pay", "Aylık net gelir")}</th><th scope="col" className="w-[80px] pb-2 text-right font-medium">{tx("Change", "Artış oranı")}</th></tr></thead>
             <tbody>{rows.map(row => <tr key={row.year}>
               <th scope="row" className="py-1 pr-2 align-middle font-semibold tabular-nums">{row.year}</th>
               <td className="py-1 pr-2">{row.year === currentYear ? <span className="flex h-10 items-center rounded-[9px] bg-card px-3 font-semibold tabular-nums text-foreground">{money(currentIncome)}</span> : <MoneyInput id={`income-${row.year}`} label={`${row.year} ${tx("monthly net pay", "aylık net gelir")}`} value={row.income} onValueChange={income => setHistory(items => items.map(item => item.year === row.year ? { ...item, income } : item))} hideLabel emptyWhenZero />}</td>

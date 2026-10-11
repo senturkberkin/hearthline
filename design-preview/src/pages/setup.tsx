@@ -44,7 +44,7 @@ export function SetupPage({ embedded = false, onComplete }: { embedded?: boolean
     if (step < 2) { moveToStep(step + 1); return }
     const next = withPrincipal(draft)
     const problem = validateScenario(next)
-    if (problem) { setError(problem === "growth" ? tx("Annual changes must be greater than −100%.", "Yıllık değişimler −%100'den büyük olmalı.") : problem === "range" ? tx("Use a loan term and scenario length of 1–40 years, and check the interest rate.", "Vade ve senaryo süresi 1–40 yıl olmalı; faiz oranını da kontrol et.") : tx("Check the home price, savings and contribution amounts.", "Ev fiyatını, birikimi ve katkı tutarlarını kontrol et.")); return }
+    if (problem) { setError(problem === "growth" ? tx("Annual changes must be greater than −100%.", "Artış oranları −%100'den büyük olmalı.") : problem === "range" ? tx("Use a loan term and scenario length of 1–40 years, and check the interest rate.", "Vade ve senaryo süresi 1–40 yıl olmalı; faiz oranını da kontrol et.") : tx("Check the home price, savings and contribution amounts.", "Ev fiyatını, birikimi ve katkı tutarlarını kontrol et.")); return }
     setScenario(next)
     if (onComplete) onComplete()
     else window.location.assign(sitePath("/results/"))

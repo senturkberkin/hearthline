@@ -9,9 +9,15 @@ type Loaded<T> = { data: T | null; stale: boolean }
 
 function ReferenceAction({ value, period, sourceUrl, stale, loading, label, unavailable, onUse }: { value: string; period: string; sourceUrl?: string; stale: boolean; loading: boolean; label: string; unavailable: string; onUse: () => void }) {
   const { tx } = useProduct()
-  return <div className="border-t border-hairline py-2">
-    <Button type="button" variant="ghost" size="sm" className="h-auto w-full justify-between px-0 py-2 text-left text-[13px] font-medium text-foreground" disabled={loading || !sourceUrl || stale} onClick={onUse}><span>{loading ? tx("Loading official rate…", "Resmî oran yükleniyor…") : sourceUrl ? <>{label} <strong className="ml-1 text-primary tabular-nums">{value}</strong></> : unavailable}</span><ArrowRight aria-hidden="true" className="size-3.5 shrink-0 text-muted-foreground" /></Button>
-    {sourceUrl && <span className="block text-[10px] text-muted-foreground">{period}{stale ? ` · ${tx("update pending", "güncelleme bekleniyor")}` : ""} · <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:underline">{tx("Official source", "Resmî kaynak")} <ArrowUpRight className="inline size-3" /></a></span>}
+  const unavailableOrStale = !sourceUrl || stale
+  return <div className="border-t border-hairline py-3">
+    <div className="rounded-[14px] border border-primary/30 bg-primary/[.055] p-1.5 dark:bg-primary/[.10]">
+      <Button type="button" variant="ghost" className="group h-auto w-full justify-between rounded-[10px] px-3 py-3 text-left text-foreground transition-[background-color,box-shadow,transform] duration-150 ease-out hover:bg-primary/[.08] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[.985] disabled:opacity-60" disabled={loading || unavailableOrStale} onClick={onUse}>
+        <span className="min-w-0"><span className="block text-[10px] font-semibold uppercase tracking-[.08em] text-primary">{tx("Apply official preset", "Resmî oranı uygula")}</span><span className="mt-1 block text-[13px] font-semibold leading-5">{loading ? tx("Loading official rate…", "Resmî oran yükleniyor…") : sourceUrl ? <>{label} <strong className="ml-1 text-primary tabular-nums">{value}</strong></> : unavailable}</span></span>
+        <span aria-hidden="true" className="ml-3 flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform duration-150 ease-out group-hover:translate-x-0.5 group-active:scale-95"><ArrowRight className="size-4" /></span>
+      </Button>
+      {sourceUrl && <div className="flex flex-wrap items-center gap-x-1.5 px-3 pb-1 pt-1 text-[10px] text-muted-foreground"><span>{period}{stale ? ` · ${tx("update pending", "güncelleme bekleniyor")}` : ""}</span><span aria-hidden="true">·</span><a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="rounded-sm font-semibold text-primary underline-offset-2 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{tx("Official source", "Resmî kaynak")} <ArrowUpRight aria-hidden="true" className="inline size-3" /></a></div>}
+    </div>
   </div>
 }
 

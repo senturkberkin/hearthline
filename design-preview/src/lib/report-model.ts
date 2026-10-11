@@ -114,9 +114,9 @@ export function buildReportModel(scenario: Scenario, language: ReportLanguage, n
     { label: tx("Mortgage at or below 40% of income", "Kredi, gelirin %40'ına iner"), value: month(firstMonth(projection.rows, row => row.payment > 0 && row.payment / row.income <= .4)) },
   ]
   const assumptions: ReportItem[] = [
-    { label: tx("Annual income change", "Yıllık gelir değişimi"), value: percent(scenario.incomeGrowth) },
-    { label: tx("Annual rent change", "Yıllık kira değişimi"), value: percent(scenario.rentGrowth) },
-    { label: tx("Annual other-expense change", "Diğer giderlerde yıllık değişim"), value: percent(scenario.expenseGrowth) },
+    { label: tx("Annual income change", "Yıllık gelir artış oranı"), value: percent(scenario.incomeGrowth) },
+    { label: tx("Annual rent change", "Yıllık kira artış oranı"), value: percent(scenario.rentGrowth) },
+    { label: tx("Annual other-expense change", "Gider artış oranı"), value: percent(scenario.expenseGrowth) },
     { label: tx("Scenario length", "Senaryo süresi"), value: tx(`${scenario.horizon} years`, `${scenario.horizon} yıl`) },
   ]
   const monthName = (index: number) => new Intl.DateTimeFormat(locale, { month: "long" }).format(new Date(2026, index, 1))
