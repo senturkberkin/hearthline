@@ -2,6 +2,52 @@ import { calculate, effectiveSupportMonths, withPrincipal, type Projection, type
 
 export type ResultCode = "funding-gap" | "payment-exceeds-income" | "both-shortfall" | "monthly-shortfall" | "support-cliff" | "support-dependent" | "future-payment-exceeds-income" | "future-shortfall" | "reserve-breach" | "cash-positive"
 export type TrendCode = "crosses" | "narrows" | "widens" | "stays-behind" | "buy-ahead" | "rent-overtakes" | "even"
+export type ComparisonSummary = {
+  state: TrendCode
+  firstMonthDifference: number
+  finalMonthDifference: number
+  transitionMonth: number | null
+  buyingHigherThroughout: boolean
+  rentingHigherThroughout: boolean
+  equalThroughout: boolean
+}
+
+export function describeComparisonTakeaway(
+  comparison: ComparisonSummary,
+  tx: (en: string, tr: string) => string,
+  money: (value: number) => string,
+) {
+  const firstDifference = Math.abs(comparison.firstMonthDifference)
+  const lead = comparison.firstMonthDifference > 0
+    ? tx(`Buying leaves ${money(firstDifference)} more monthly cash in month one.`, `Ev alımında ilk ay ${money(firstDifference)} daha fazla kalıyor.`)
+    : comparison.firstMonthDifference < 0
+      ? tx(`Renting leaves ${money(firstDifference)} more monthly cash in month one.`, `Kirada ilk ay ${money(firstDifference)} daha fazla kalıyor.`)
+      : tx("Both options leave the same monthly cash in month one.", "İlk ay iki seçenekte de aynı tutar kalıyor.")
+
+  const detail = comparison.state === "crosses"
+    ? tx(`From month ${comparison.transitionMonth}, monthly cash left is higher when buying.`, `Ev alımında ${comparison.transitionMonth}. aydan sonra aylık elde kalan tutar daha yüksek.`)
+    : comparison.state === "rent-overtakes"
+      ? tx(`From month ${comparison.transitionMonth}, monthly cash left is higher when renting.`, `Kirada ${comparison.transitionMonth}. aydan sonra aylık elde kalan tutar daha yüksek.`)
+      : comparison.state === "buy-ahead" && comparison.buyingHigherThroughout
+        ? tx("Buying leaves more monthly cash throughout the scenario.", "Ev alımında senaryo boyunca aylık elde kalan tutar daha yüksek.")
+        : comparison.state === "buy-ahead"
+          ? tx("Buying leaves more monthly cash in month one and at the end of the scenario.", "Ev alımında ilk ay ve senaryo sonunda aylık elde kalan tutar daha yüksek.")
+          : comparison.state === "narrows"
+            ? tx("The monthly cash-left gap narrows over time, but no sustained crossover occurs within the scenario.", "Aylık elde kalan farkı zamanla azalıyor; senaryo içinde kalıcı bir geçiş oluşmuyor.")
+            : comparison.state === "widens"
+              ? tx("The monthly cash-left gap widens over time.", "Aylık elde kalan farkı zamanla artıyor.")
+              : comparison.state === "stays-behind" && comparison.rentingHigherThroughout
+                ? tx("Renting leaves more monthly cash throughout the scenario.", "Kirada senaryo boyunca aylık elde kalan tutar daha yüksek.")
+                : comparison.state === "stays-behind"
+                  ? tx("No sustained crossover occurs within the scenario.", "Senaryo içinde kalıcı bir geçiş oluşmuyor.")
+                  : comparison.equalThroughout
+                    ? tx("The two monthly cash-flow paths remain equal throughout the scenario.", "İki seçenekte de senaryo boyunca aylık elde kalan tutar aynı.")
+                    : comparison.finalMonthDifference > 0
+                      ? tx(`By the final month, buying leaves ${money(Math.abs(comparison.finalMonthDifference))} more monthly cash.`, `Son ay ev alımında ${money(Math.abs(comparison.finalMonthDifference))} daha fazla kalıyor.`)
+                      : tx(`By the final month, renting leaves ${money(Math.abs(comparison.finalMonthDifference))} more monthly cash.`, `Son ay kirada ${money(Math.abs(comparison.finalMonthDifference))} daha fazla kalıyor.`)
+
+  return { lead, detail }
+}
 
 function minimumWorkingValue(start: number, end: number, works: (value: number) => boolean) {
   if (works(start)) return Math.ceil(start)
@@ -48,6 +94,15 @@ export function deriveResultGuidance(scenario: Scenario, projection: Projection)
   const change = lastGap - firstGap
   const materialChange = Math.abs(firstGap) * .1
   const trend: TrendCode = firstGap === 0 ? "even" : firstGap > 0 ? (rentOvertakes ? "rent-overtakes" : "buy-ahead") : crossover ? "crosses" : change > materialChange ? "narrows" : change < -materialChange ? "widens" : "stays-behind"
+  const comparison: ComparisonSummary = {
+    state: trend,
+    firstMonthDifference: firstGap,
+    finalMonthDifference: lastGap,
+    transitionMonth: crossover ? crossover.m + 1 : rentOvertakes ? rentOvertakes.m + 1 : null,
+    buyingHigherThroughout: rows.every(row => row.buySurplus >= row.rentSurplus),
+    rentingHigherThroughout: rows.every(row => row.rentSurplus >= row.buySurplus),
+    equalThroughout: rows.every(row => row.buySurplus === row.rentSurplus),
+  }
   const paymentGap = Math.max(0, first.payment - first.income - first.support)
   const code: ResultCode = fundingGap > 0 ? "funding-gap" : paymentGap > 0 ? "payment-exceeds-income" : first.buySurplus < 0 && first.rentSurplus < 0 ? "both-shortfall" : first.buySurplus < 0 ? "monthly-shortfall" : supportCliff ? "support-cliff" : supportDependent ? "support-dependent" : futurePaymentGap ? "future-payment-exceeds-income" : firstDeficit ? "future-shortfall" : reserveBreachAtPurchase || firstReserveBreach ? "reserve-breach" : "cash-positive"
 
@@ -78,7 +133,7 @@ export function deriveResultGuidance(scenario: Scenario, projection: Projection)
   const incomeToBalance = Math.ceil(scenario.income + Math.max(0, -first.buySurplus))
 
   return {
-    code, trend, fundingGap, paymentGap, supportMonths, firstDeficitMonth: firstDeficit ? firstDeficit.m + 1 : null,
+    code, trend, comparison, fundingGap, paymentGap, supportMonths, firstDeficitMonth: firstDeficit ? firstDeficit.m + 1 : null,
     futurePaymentGapMonth: futurePaymentGap ? futurePaymentGap.m + 1 : null,
     futurePaymentGapAmount: futurePaymentGap ? futurePaymentGap.payment - futurePaymentGap.income - futurePaymentGap.support : 0,
     firstReserveBreachMonth: reserveBreachAtPurchase ? 0 : firstReserveBreach ? firstReserveBreach.m + 1 : null,

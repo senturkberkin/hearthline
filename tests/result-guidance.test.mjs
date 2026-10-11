@@ -11,13 +11,17 @@ function transpile(path) {
 const engineUrl = `data:text/javascript;base64,${Buffer.from(transpile('../design-preview/src/lib/engine.ts')).toString('base64')}`;
 const engine = await import(engineUrl);
 const guidanceUrl = `data:text/javascript;base64,${Buffer.from(transpile('../design-preview/src/lib/result-guidance.ts').replace('from "./engine"', `from "${engineUrl}"`)).toString('base64')}`;
-const {deriveResultGuidance} = await import(guidanceUrl);
+const {deriveResultGuidance,describeComparisonTakeaway} = await import(guidanceUrl);
 
 const facts = {income:90000,rent:30000,livingCosts:20000,savings:600000,propertyPrice:4000000};
 function result(overrides = {}) {
   const scenario = engine.withPrincipal({...engine.scenarioFromFacts(facts,2.25,0),downPayment:500000,rate:2, ...overrides});
   return {scenario, guidance:deriveResultGuidance(scenario,engine.calculate(scenario))};
 }
+const english = (en) => en;
+const turkish = (_,tr) => tr;
+const money = value => `TRY ${Math.round(value)}`;
+const takeaway = (guidance,tx=english) => describeComparisonTakeaway(guidance.comparison,tx,money);
 
 test('G01 upfront funding gap outranks monthly cash flow', () => {
   const {guidance} = result({savings:100000});
@@ -190,4 +194,61 @@ test('G29 summary preview is static while full-page guidance remains interactive
   assert.match(guidance,/interactive = true/);
   assert.match(guidance,/interactive\s*\n\s*\? <button/);
   assert.match(results,/<ResultGuidance scenario=\{scenario\} projection=\{projection\} \/>/);
+});
+test('G30 rent-ahead-throughout comparison states the metric and first-month difference', () => {
+  const {guidance}=result();
+  assert.equal(guidance.comparison.rentingHigherThroughout,true);
+  const copy=takeaway(guidance);
+  assert.match(copy.lead,/Renting leaves TRY \d+ more monthly cash in month one/);
+  assert.match(copy.detail,/Renting leaves more monthly cash throughout the scenario/);
+  assert.equal(guidance.comparison.firstMonthDifference,guidance.monthOneGap);
+});
+test('G31 buy-ahead-throughout comparison remains separate from feasibility', () => {
+  const {guidance}=result({propertyPrice:1000000});
+  assert.equal(guidance.trend,'buy-ahead');
+  assert.equal(guidance.comparison.buyingHigherThroughout,true);
+  const copy=takeaway(guidance);
+  assert.match(copy.lead,/Buying leaves TRY \d+ more monthly cash in month one/);
+  assert.match(copy.detail,/throughout the scenario/);
+});
+test('G32 buy-overtakes-later comparison uses the sustained crossover month', () => {
+  const {guidance}=result({propertyPrice:2000000,rentGrowth:50});
+  const copy=takeaway(guidance,turkish);
+  assert.equal(guidance.comparison.state,'crosses');
+  assert.equal(guidance.comparison.transitionMonth,guidance.crossoverMonth);
+  assert.match(copy.detail,new RegExp(`${guidance.crossoverMonth}\\. aydan sonra aylık elde kalan tutar daha yüksek`));
+});
+test('G33 rent-overtakes-later comparison uses the sustained crossover month', () => {
+  const {guidance}=result({propertyPrice:2000000,monthlySupport:10000,supportMonths:6});
+  const copy=takeaway(guidance);
+  assert.equal(guidance.comparison.state,'rent-overtakes');
+  assert.equal(guidance.comparison.transitionMonth,guidance.rentOvertakesMonth);
+  assert.match(copy.detail,new RegExp(`From month ${guidance.rentOvertakesMonth}, monthly cash left is higher when renting`));
+});
+test('G34 narrowing without a crossover does not imply a winner', () => {
+  const {guidance}=result({horizon:2,rentGrowth:20});
+  const copy=takeaway(guidance);
+  assert.equal(guidance.comparison.state,'narrows');
+  assert.equal(guidance.comparison.transitionMonth,null);
+  assert.match(copy.detail,/gap narrows over time/);
+  assert.match(copy.detail,/no sustained crossover/);
+});
+test('G35 equal paths use explicit monthly-cash wording', () => {
+  const {scenario}=result({propertyPrice:1000000});
+  const firstProjection=engine.calculate(scenario);
+  const equalScenario=engine.withPrincipal({...scenario,rent:firstProjection.rows[0].userHousing});
+  const guidance=deriveResultGuidance(equalScenario,engine.calculate(equalScenario));
+  const copy=takeaway(guidance);
+  assert.equal(guidance.comparison.state,'even');
+  assert.match(copy.lead,/same monthly cash in month one/);
+});
+test('G36 negative feasibility still produces a visible, non-recommendatory comparison', () => {
+  const {guidance}=result({income:95000});
+  const en=takeaway(guidance);
+  const tr=takeaway(guidance,turkish);
+  const source=readFileSync(new URL('../design-preview/src/components/product/result-guidance.tsx',import.meta.url),'utf8');
+  assert.equal(guidance.code,'monthly-shortfall');
+  assert.ok(en.lead.length > 0 && en.detail.length > 0);
+  assert.match(source,/tx\("Comparison takeaway", "Karşılaştırma"\)/);
+  assert.doesNotMatch(`${en.lead} ${en.detail} ${tr.lead} ${tr.detail}`,/\b(?:better|winner|recommend|profitable)\b|daha iyi|avantajlı|kazanan|kârlı|öne geç/i);
 });

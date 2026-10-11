@@ -1,13 +1,14 @@
 import { useState, type ReactNode } from "react"
 import { ArrowRight, ChevronDown, Clock3, Target, WalletCards } from "lucide-react"
 import { useProduct } from "@/lib/product-context"
-import { deriveResultGuidance } from "@/lib/result-guidance"
+import { deriveResultGuidance, describeComparisonTakeaway } from "@/lib/result-guidance"
 import { calculate, withPrincipal, type Projection, type Scenario } from "@/lib/engine"
 
 export function ResultGuidance({ scenario, projection, headingId = "result-guidance-title", interactive = true }: { scenario: Scenario; projection: Projection; headingId?: string; interactive?: boolean }) {
   const { tx, money } = useProduct()
   const [expanded, setExpanded] = useState<"today" | "time" | "next" | null>(null)
   const result = deriveResultGuidance(scenario, projection)
+  const comparisonTakeaway = describeComparisonTakeaway(result.comparison, tx, money)
   const first = projection.rows[0]
   const month = (value: number | null) => tx(`month ${value}`, `${value}. ay`)
   const horizon = tx(`${scenario.horizon} years`, `${scenario.horizon} yıl`)
@@ -37,21 +38,13 @@ export function ResultGuidance({ scenario, projection, headingId = "result-guida
     : result.monthOneBuyCash < 0
       ? tx(`Buying expenses exceed income and support by ${money(Math.abs(result.monthOneBuyCash))} in month one.`, `İlk ay ev alımındaki giderler, gelir ve desteği ${money(Math.abs(result.monthOneBuyCash))} aşıyor.`)
       : tx(`After housing, regular expenses and debt, ${money(result.monthOneBuyCash)} remains in month one.`, `İlk ay konut, düzenli giderler ve borçlar ödendikten sonra ${money(result.monthOneBuyCash)} kalıyor.`)
-  const comparisonDetail = result.monthOneGap < 0
-    ? tx(`Buying leaves ${money(Math.abs(result.monthOneGap))} less than renting in month one.`, `İlk ay ev alımında kiraya göre ${money(Math.abs(result.monthOneGap))} daha az kalıyor.`)
-    : result.monthOneGap > 0
-      ? tx(`Buying leaves ${money(result.monthOneGap)} more than renting in month one.`, `İlk ay ev alımında kiraya göre ${money(result.monthOneGap)} daha fazla kalıyor.`)
-      : tx("Both options leave the same amount in month one.", "İlk ay iki seçenekte de aynı tutar kalıyor.")
-
   const timeTitle = result.supportCliffMonth
     ? tx(`Support ends in ${month(result.supportCliffMonth)}`, `Destek ${month(result.supportCliffMonth)} sona eriyor`)
     : result.recoveryMonth && result.monthOneBuyCash < 0
       ? tx(`The monthly budget balances in ${month(result.recoveryMonth)}`, `Aylık bütçen ${month(result.recoveryMonth)} dengelenir`)
       : result.firstDeficitMonth && result.firstDeficitMonth > 1
         ? tx(`The budget becomes tight in ${month(result.firstDeficitMonth)}`, `Giderler ${month(result.firstDeficitMonth)} geliri aşmaya başlar`)
-        : result.crossoverMonth
-          ? tx(`Buying moves ahead in ${month(result.crossoverMonth)}`, `Ev alımında ${month(result.crossoverMonth)} daha fazla para kalmaya başlar`)
-          : result.monthOneBuyCash < 0
+        : result.monthOneBuyCash < 0
             ? tx(`It does not balance within ${horizon}`, `${horizon} içinde aylık bütçe dengelenmiyor`)
             : tx("The monthly budget starts balanced", "Aylık bütçen ilk aydan dengede")
   const timeDetail = result.supportCliffMonth
@@ -60,9 +53,7 @@ export function ResultGuidance({ scenario, projection, headingId = "result-guida
       ? tx("This uses the income and expense changes you entered; it is not a market forecast.", "Bu tarih, girdiğin gelir ve gider değişimlerine dayanır; piyasa tahmini değildir.")
       : result.firstDeficitMonth && result.firstDeficitMonth > 1
         ? tx("The later result follows the growth assumptions you entered.", "İlerleyen dönemdeki sonuç, girdiğin değişim oranlarına dayanır.")
-        : result.crossoverMonth
-          ? tx("From then on, buying leaves more monthly cash than renting in this model.", "Bu tarihten sonra modelde ev alımında kiraya göre aylık olarak daha fazla para kalır.")
-          : result.monthOneBuyCash < 0
+        : result.monthOneBuyCash < 0
             ? tx("The monthly gap remains within the period you selected.", "Seçtiğin dönem boyunca aylık giderler gelirden yüksek kalır.")
             : tx("No monthly gap appears at the beginning of this scenario.", "Bu senaryonun başlangıcında aylık bütçede eksik oluşmuyor.")
 
@@ -154,12 +145,19 @@ export function ResultGuidance({ scenario, projection, headingId = "result-guida
   return <section aria-labelledby={headingId} className="mb-7">
     <h1 id={headingId} className="max-w-[790px] text-[clamp(2.15rem,4.5vw,3.65rem)] leading-[1.02] font-semibold tracking-[-.067em]">{verdict}</h1>
 
+    <div className="mt-5 max-w-[790px] border-l-2 border-primary/35 pl-4 sm:pl-5 dark:border-white/30">
+      <p className="text-[10px] font-semibold text-primary dark:text-white">{tx("Comparison takeaway", "Karşılaştırma")}</p>
+      <p className="mt-1.5 text-[14px] font-semibold leading-5">{comparisonTakeaway.lead}</p>
+      <p className="mt-1 text-[12px] leading-5 text-ink-soft">{comparisonTakeaway.detail}</p>
+      <p className="mt-1 text-[10px] leading-4 text-muted-foreground">{tx("Monthly cash left, not total wealth.", "Aylık elde kalan tutarı gösterir; toplam serveti değil.")}</p>
+    </div>
+
     <div className="mt-6 grid gap-3 sm:grid-cols-[1.15fr_.85fr]">
       <div className={`relative overflow-hidden rounded-[22px] bg-[#edf4ff] sm:row-span-2 dark:bg-[#272b30] ${expanded === "today" ? "ring-1 ring-primary/20 dark:ring-white/15" : ""}`}>
         <div className="pointer-events-none absolute -right-14 -top-16 size-44 rounded-full bg-gradient-to-br from-white/80 via-white/35 to-primary/10 blur-2xl dark:from-white/10 dark:via-white/[.03] dark:to-transparent" />
         <CardContent card="today" controls="result-today-detail" className="relative block w-full p-5 sm:p-6">
           <div className="flex items-center justify-between"><WalletCards aria-hidden="true" className="size-5 text-primary dark:text-white" />{interactive && <ChevronDown aria-hidden="true" className={`size-4 text-muted-foreground transition-transform ${expanded === "today" ? "rotate-180" : ""}`} />}</div>
-          <p className="mt-7 text-[11px] font-semibold text-muted-foreground">{tx("Today", "Bugün")}</p><strong className={`mt-2 block text-[clamp(2.45rem,6vw,4.2rem)] leading-none font-semibold tracking-[-.065em] tabular-nums ${todayNegative ? "text-destructive" : ""}`}>{money(todayValue)}</strong><p className="mt-2 text-[13px] font-semibold">{todayLabel}</p><p className="mt-4 max-w-[430px] text-[12px] leading-5 text-ink-soft">{todayDetail}</p><div className="mt-6 inline-flex rounded-full bg-white/80 px-3 py-2 text-[11px] font-medium text-ink-soft dark:bg-black/20">{comparisonDetail}</div>
+          <p className="mt-7 text-[11px] font-semibold text-muted-foreground">{tx("Today", "Bugün")}</p><strong className={`mt-2 block text-[clamp(2.45rem,6vw,4.2rem)] leading-none font-semibold tracking-[-.065em] tabular-nums ${todayNegative ? "text-destructive" : ""}`}>{money(todayValue)}</strong><p className="mt-2 text-[13px] font-semibold">{todayLabel}</p><p className="mt-4 max-w-[430px] text-[12px] leading-5 text-ink-soft">{todayDetail}</p>
         </CardContent>
         {interactive && expanded === "today" && <div id="result-today-detail" className="relative mx-5 border-t border-primary/10 pb-5 pt-4 sm:mx-6 sm:pb-6 dark:border-white/10"><p className="mb-2 text-[11px] font-semibold text-foreground">{tx("Why this result?", "Bu sonuç neden çıktı?")}</p>{whyRows}</div>}
       </div>
@@ -169,7 +167,7 @@ export function ResultGuidance({ scenario, projection, headingId = "result-guida
           <div className="flex items-center justify-between"><div className="flex items-center gap-2 text-muted-foreground"><Clock3 aria-hidden="true" className="size-4" /><span className="text-[11px] font-semibold">{tx("Over time", "Zaman içinde")}</span></div>{interactive && <ChevronDown aria-hidden="true" className={`size-4 text-muted-foreground transition-transform ${expanded === "time" ? "rotate-180" : ""}`} />}</div>
           <div className="mt-4 flex items-start gap-3"><span className="mt-1.5 size-2 shrink-0 rounded-full bg-primary ring-4 ring-primary/10 dark:bg-white dark:ring-white/10" /><div><p className="text-[14px] font-semibold leading-5">{timeTitle}</p><p className="mt-1.5 text-[11px] leading-5 text-ink-soft">{timeDetail}</p></div></div>
         </CardContent>
-        {interactive && expanded === "time" && <div id="result-time-detail" className="mx-5 border-t border-border/70 pb-5 pt-4"><ol className="grid gap-3 text-[11px] leading-5"><li><span className="font-semibold">{tx("Now", "Şimdi")}</span><p className="text-ink-soft">{todayDetail}</p></li><li><span className="font-semibold">{tx("Turning point", "Dönüm noktası")}</span><p className="text-ink-soft">{timeTitle}</p></li><li><span className="font-semibold">{tx("Compared with renting", "Kirayla karşılaştırınca")}</span><p className="text-ink-soft">{comparisonDetail}</p></li></ol></div>}
+        {interactive && expanded === "time" && <div id="result-time-detail" className="mx-5 border-t border-border/70 pb-5 pt-4"><ol className="grid gap-3 text-[11px] leading-5"><li><span className="font-semibold">{tx("Now", "Şimdi")}</span><p className="text-ink-soft">{todayDetail}</p></li><li><span className="font-semibold">{tx("Turning point", "Dönüm noktası")}</span><p className="text-ink-soft">{timeTitle}</p></li></ol></div>}
       </div>
 
       <div className={`rounded-[18px] bg-[#e5effd] dark:bg-[#30353a] ${expanded === "next" ? "ring-1 ring-primary/20 dark:ring-white/15" : ""}`}>
