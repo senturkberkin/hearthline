@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
 
 export default defineConfig({
-  base: process.env.GITHUB_PAGES === "true" ? "/hearthline/" : "/",
+  base: process.env.CUSTOM_DOMAIN === "true" ? "/" : process.env.GITHUB_PAGES === "true" ? "/hearthline/" : "/",
   plugins: [react(), tailwindcss()],
   resolve: { alias: { "@": path.resolve(import.meta.dirname, "./src") } },
 })

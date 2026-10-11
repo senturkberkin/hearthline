@@ -29,7 +29,7 @@ jobs:
           cache-dependency-path: design-preview/package-lock.json
       - run: npm ci --prefix design-preview
       - run: npm test
-      - run: GITHUB_PAGES=true npm run build
+      - run: CUSTOM_DOMAIN=true GITHUB_PAGES=true npm run build
       - name: Prepare direct-link pages
         run: |
           mkdir -p design-preview/dist/setup design-preview/dist/results design-preview/dist/privacy design-preview/dist/terms
