@@ -152,8 +152,7 @@ export function ResultGuidance({ scenario, projection, headingId = "result-guida
   </div>
 
   return <section aria-labelledby={headingId} className="mb-7">
-    <div className="inline-flex items-center gap-2 rounded-full bg-[#edf4ff] px-3 py-1.5 text-[11px] font-semibold text-primary dark:bg-[#2d3136] dark:text-white"><span className="size-1.5 rounded-full bg-primary dark:bg-white" />{tx("Your result", "Sonucun")}</div>
-    <h1 id={headingId} className="mt-4 max-w-[790px] text-[clamp(2.15rem,4.5vw,3.65rem)] leading-[1.02] font-semibold tracking-[-.067em]">{verdict}</h1>
+    <h1 id={headingId} className="max-w-[790px] text-[clamp(2.15rem,4.5vw,3.65rem)] leading-[1.02] font-semibold tracking-[-.067em]">{verdict}</h1>
 
     <div className="mt-6 grid gap-3 sm:grid-cols-[1.15fr_.85fr]">
       <div className={`relative overflow-hidden rounded-[22px] bg-[#edf4ff] sm:row-span-2 dark:bg-[#272b30] ${expanded === "today" ? "ring-1 ring-primary/20 dark:ring-white/15" : ""}`}>

@@ -64,7 +64,7 @@ function AssumptionEditor({ active, onOpenChange, scenario, update, constraintEr
       <DialogPrimitive.Overlay className="assumption-editor-overlay fixed inset-0 z-50 bg-[#101318]/45 backdrop-blur-[2px]" />
       <DialogPrimitive.Content className="assumption-editor-panel fixed inset-x-3 bottom-3 z-50 flex max-h-[calc(100dvh-24px)] flex-col overflow-hidden rounded-[24px] border border-hairline bg-background text-foreground shadow-[0_30px_100px_-30px_rgba(0,0,0,.55)] outline-none sm:inset-y-4 sm:left-auto sm:right-4 sm:w-[min(520px,calc(100vw-32px))]" aria-describedby="future-editor-summary">
         <header className="flex items-start justify-between gap-5 border-b border-hairline px-5 py-5 sm:px-7 sm:py-6">
-          <div><span className="text-[10px] font-semibold uppercase tracking-[.09em] text-primary">{tx("Current assumption", "Güncel varsayım")}</span><DialogPrimitive.Title className="mt-1 text-[24px] font-semibold tracking-[-.04em]">{details.title}</DialogPrimitive.Title><DialogPrimitive.Description id="future-editor-summary" className="mt-1 text-[13px] font-medium tabular-nums text-ink-soft">{details.summary}</DialogPrimitive.Description></div>
+          <div><DialogPrimitive.Title className="text-[24px] font-semibold tracking-[-.04em]">{details.title}</DialogPrimitive.Title><DialogPrimitive.Description id="future-editor-summary" className="mt-1 text-[13px] font-medium tabular-nums text-ink-soft">{details.summary}</DialogPrimitive.Description></div>
           <DialogPrimitive.Close asChild><Button type="button" variant="ghost" size="icon" className="shrink-0 rounded-full" aria-label={tx("Close editor", "Düzenleyiciyi kapat")}><X className="size-4" /></Button></DialogPrimitive.Close>
         </header>
 

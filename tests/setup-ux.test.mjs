@@ -113,11 +113,11 @@ test('S10 future assumptions use a stable overview and one focused responsive ed
 test('S11 official growth shortcuts are dated, click-to-apply and kept current',()=>{
   assert.match(futureAssumptions,/<MinimumWageGrowthAction onUse=\{incomeGrowth => update\(\{ incomeGrowth \}\)\}/);
   assert.match(futureAssumptions,/<RentCeilingGrowthAction onUse=\{rentGrowth => update\(\{ rentGrowth \}\)\}/);
-  assert.match(growthReferences,/Use \$\{data\.period\} minimum-wage increase.*\$\{data\.period\} asgari ücret artışını kullan/);
-  assert.match(growthReferences,/Use rent ceiling.*Kira üst sınırını kullan/);
+  assert.match(growthReferences,/\$\{data\.period\} minimum-wage increase.*\$\{data\.period\} asgari ücret artışı/);
+  assert.match(growthReferences,/Rent ceiling.*Kira artış üst sınırı/);
   assert.doesNotMatch(growthReferences,/Applied every year in this scenario; not a forecast/);
   assert.doesNotMatch(growthReferences,/Bu senaryoda her yıl uygulanır; tahmin değildir/);
-  assert.match(growthReferences,/Apply official preset.*Resmî oranı uygula/);
+  assert.doesNotMatch(growthReferences,/Apply official preset|Resmî oranı uygula/);
   assert.match(growthReferences,/border border-primary\/30 bg-primary/);
   assert.match(growthReferences,/disabled=\{loading \|\| unavailableOrStale\}/);
   assert.match(growthReferences,/<a href=\{sourceUrl\}/);
