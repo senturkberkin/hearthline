@@ -51,7 +51,8 @@ test('S04 navigation says what comes next in both languages',()=>{
 test('S05 mobile context and active mortgage assumptions stay visible',()=>{
   assert.match(setup,/lg:hidden.*Entered values.*Girilen bilgiler/s);
   assert.match(setup,/tx\("Loan assumption", "Kredi varsayımı"\)/);
-  assert.match(setup,/percent\(draft\.rate, 2\)/);
+  assert.match(setup,/id="rate"/);
+  assert.match(setup,/id="loan-term"/);
   assert.match(setup,/Additional buying costs.*Ek alım giderleri/);
 });
 
@@ -84,9 +85,19 @@ test('S09 month selection uses a compact native control in narrow assumption col
   assert.doesNotMatch(monthPicker,/ToggleGroup/);
 });
 
-test('S10 growth cards keep months visible and move optional calculators out of the card flow',()=>{
+test('S10 future assumptions are compact summaries with one editor open at a time',()=>{
+  assert.match(setup,/type FutureEditor = "income" \| "rent" \| "expenses" \| "other"/);
+  assert.match(setup,/const \[openFuture, setOpenFuture\] = React\.useState<FutureEditor \| null>\(null\)/);
+  assert.equal((setup.match(/<FutureSummaryRow/g) || []).length,4);
+  assert.match(setup,/openFuture === "income" \? null : "income"/);
+  assert.match(setup,/openFuture === "rent" \? null : "rent"/);
+  assert.match(setup,/openFuture === "expenses" \? null : "expenses"/);
+  assert.match(setup,/openFuture === "other" \? null : "other"/);
   assert.match(setup,/id="income-growth"[\s\S]*?<MonthPicker value=\{draft\.raiseMonth\}/);
   assert.match(setup,/id="rent-growth"[\s\S]*?<MonthPicker value=\{draft\.rentRenewal\}/);
+  assert.match(setup,/These are annual scenario assumptions, not forecasts/);
+  assert.match(setup,/Buradaki değişimler yıllık senaryo varsayımlarıdır, tahmin değildir/);
+  assert.doesNotMatch(setup,/AssumptionFieldLabel/);
   assert.match(incomeHistory,/DialogPrimitive\.Content/);
   assert.match(rentGrowth,/DialogPrimitive\.Content/);
   assert.doesNotMatch(incomeHistory,/Collapsible/);
@@ -96,10 +107,10 @@ test('S10 growth cards keep months visible and move optional calculators out of 
 test('S11 official growth shortcuts are dated, click-to-apply and kept current',()=>{
   assert.match(setup,/<MinimumWageGrowthAction onUse=\{incomeGrowth => update\(\{ incomeGrowth \}\)\}/);
   assert.match(setup,/<RentCeilingGrowthAction onUse=\{rentGrowth => update\(\{ rentGrowth \}\)\}/);
-  assert.match(growthReferences,/Use wage increase as annual assumption.*Ücret artışını yıllık varsayım olarak kullan/);
-  assert.match(growthReferences,/Use rent ceiling as annual assumption.*Kira üst sınırını yıllık varsayım olarak kullan/);
-  assert.match(growthReferences,/Applied every year in this scenario; not a forecast/);
-  assert.match(growthReferences,/Bu senaryoda her yıl uygulanır; tahmin değildir/);
+  assert.match(growthReferences,/Use \$\{data\.period\} minimum-wage increase.*\$\{data\.period\} asgari ücret artışını kullan/);
+  assert.match(growthReferences,/Use rent ceiling.*Kira üst sınırını kullan/);
+  assert.doesNotMatch(growthReferences,/Applied every year in this scenario; not a forecast/);
+  assert.doesNotMatch(growthReferences,/Bu senaryoda her yıl uygulanır; tahmin değildir/);
   assert.match(growthReferences,/disabled=\{loading \|\| !sourceUrl \|\| stale\}/);
   assert.equal(wageReference.percentage,27.01);
   assert.match(wageReference.sourceUrl,/^https:\/\/(www\.)?csgb\.gov\.tr\//);
