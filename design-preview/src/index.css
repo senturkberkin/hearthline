@@ -301,6 +301,21 @@
 @keyframes results-fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes results-enter { from { opacity: 0; transform: translateY(12px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
+.assumption-editor-overlay[data-state="open"] { animation: assumption-overlay-in 160ms cubic-bezier(.23, 1, .32, 1) both; }
+.assumption-editor-overlay[data-state="closed"] { animation: assumption-overlay-out 120ms ease-out both; }
+.assumption-editor-panel[data-state="open"] { animation: assumption-panel-up 220ms cubic-bezier(.23, 1, .32, 1) both; }
+.assumption-editor-panel[data-state="closed"] { animation: assumption-panel-down 150ms ease-out both; }
+@keyframes assumption-overlay-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes assumption-overlay-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes assumption-panel-up { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes assumption-panel-down { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(16px); } }
+@media (min-width: 640px) {
+  .assumption-editor-panel[data-state="open"] { animation-name: assumption-panel-in-right; }
+  .assumption-editor-panel[data-state="closed"] { animation-name: assumption-panel-out-right; }
+}
+@keyframes assumption-panel-in-right { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes assumption-panel-out-right { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(20px); } }
+
 .allocation-range {
   appearance: none;
   display: block;
@@ -334,6 +349,7 @@
   .step-switcher__active { transition: none; }
   .step-content--forward, .step-content--back { animation: none; }
   .results-overlay, .results-dialog { animation: none; }
+  .assumption-editor-panel[data-state], .assumption-editor-overlay[data-state] { animation: none; }
 }
 
 .landing-section { scroll-margin-top: 7rem; }

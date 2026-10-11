@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ArrowUpRight } from "lucide-react"
+import { ArrowRight, ArrowUpRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useProduct } from "@/lib/product-context"
 import { loadMinimumWageReference, type MinimumWageReference } from "@/lib/minimum-wage-reference"
@@ -9,9 +9,9 @@ type Loaded<T> = { data: T | null; stale: boolean }
 
 function ReferenceAction({ value, period, sourceUrl, stale, loading, label, unavailable, onUse }: { value: string; period: string; sourceUrl?: string; stale: boolean; loading: boolean; label: string; unavailable: string; onUse: () => void }) {
   const { tx } = useProduct()
-  return <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-hairline pt-3">
-    <Button type="button" variant="ghost" size="sm" className="h-auto px-0 py-1.5 text-primary" disabled={loading || !sourceUrl || stale} onClick={onUse}>{loading ? tx("Loading official rate…", "Resmî oran yükleniyor…") : sourceUrl ? `${label} · ${value}` : unavailable}</Button>
-    {sourceUrl && <span className="text-[10px] text-muted-foreground">{period}{stale ? ` · ${tx("update pending", "güncelleme bekleniyor")}` : ""} · <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:underline">{tx("Official source", "Resmî kaynak")} <ArrowUpRight className="inline size-3" /></a></span>}
+  return <div className="border-t border-hairline py-2">
+    <Button type="button" variant="ghost" size="sm" className="h-auto w-full justify-between px-0 py-2 text-left text-[13px] font-medium text-foreground" disabled={loading || !sourceUrl || stale} onClick={onUse}><span>{loading ? tx("Loading official rate…", "Resmî oran yükleniyor…") : sourceUrl ? <>{label} <strong className="ml-1 text-primary tabular-nums">{value}</strong></> : unavailable}</span><ArrowRight aria-hidden="true" className="size-3.5 shrink-0 text-muted-foreground" /></Button>
+    {sourceUrl && <span className="block text-[10px] text-muted-foreground">{period}{stale ? ` · ${tx("update pending", "güncelleme bekleniyor")}` : ""} · <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:underline">{tx("Official source", "Resmî kaynak")} <ArrowUpRight className="inline size-3" /></a></span>}
   </div>
 }
 

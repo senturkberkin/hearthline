@@ -16,7 +16,7 @@ export function IncomeHistoryCalculator({ currentIncome, onApply }: { currentInc
   const oldestYear = Math.min(...history.map(entry => entry.year))
 
   return <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
-    <DialogPrimitive.Trigger asChild><Button type="button" variant="ghost" size="sm" className="mt-5 px-0 text-primary">{tx("Calculate from past income", "Geçmiş gelirlerden hesapla")} <span aria-hidden="true">→</span></Button></DialogPrimitive.Trigger>
+    <DialogPrimitive.Trigger asChild><Button type="button" variant="ghost" size="sm" className="mt-1 h-auto w-full justify-between px-0 py-3 text-left text-[13px] font-medium text-foreground">{tx("Calculate from past income", "Geçmiş gelirlerden hesapla")} <span aria-hidden="true" className="text-muted-foreground">→</span></Button></DialogPrimitive.Trigger>
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/45 backdrop-blur-[2px]" />
       <DialogPrimitive.Content className="fixed left-1/2 top-1/2 z-50 max-h-[88dvh] w-[calc(100%-24px)] max-w-[620px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[22px] bg-background p-5 text-foreground shadow-[0_30px_100px_-30px_rgba(0,0,0,.45)] outline-none sm:p-7" aria-describedby={undefined}>

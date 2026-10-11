@@ -1,84 +1,30 @@
 import * as React from "react"
 import { ArrowLeft, ArrowRight, ChevronDown, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { BrandHeader } from "@/components/product/shell"
 import { MoneyInput, PercentInput } from "@/components/product/financial-input"
 import { FieldInfo, FieldInfoLabel } from "@/components/product/field-info"
-import { IncomeHistoryCalculator } from "@/components/product/income-history-calculator"
-import { MinimumWageGrowthAction, RentCeilingGrowthAction } from "@/components/product/growth-reference-action"
-import { MonthPicker } from "@/components/product/month-picker"
-import { RentGrowthCalculator } from "@/components/product/rent-growth-calculator"
-import { SupportInputs } from "@/components/product/support-inputs"
+import { FutureAssumptions } from "@/components/product/future-assumptions"
+import { IntegerInput } from "@/components/product/integer-input"
 import { useProduct } from "@/lib/product-context"
 import { clampDownPayment, downPaymentAllocation } from "@/lib/down-payment-allocation"
 import { normalizeScenario, validateScenario, withPrincipal, type Scenario } from "@/lib/engine"
 import { sitePath } from "@/lib/utils"
 
-type FutureEditor = "income" | "rent" | "expenses" | "other"
-
-function FutureSummaryRow({ title, summary, open, onToggle, children, editLabel, doneLabel }: { title: string; summary: string; open: boolean; onToggle: () => void; children: React.ReactNode; editLabel: string; doneLabel: string }) {
-  return <div className="border-b border-hairline last:border-b-0">
-    <div className="flex min-h-[76px] items-center justify-between gap-5 py-4">
-      <div className="min-w-0"><h3 className="text-[14px] font-semibold">{title}</h3><p className="mt-1 truncate text-[12px] text-ink-soft tabular-nums">{summary}</p></div>
-      <Button type="button" variant="ghost" size="sm" aria-expanded={open} onClick={onToggle} className="shrink-0 px-2 text-primary">{open ? doneLabel : editLabel}</Button>
-    </div>
-    {open && <div className="pb-6 pt-1">{children}</div>}
-  </div>
-}
-
-function IntegerInput({ id, value, onValueChange, min, max }: { id: string; value: number; onValueChange: (value: number) => void; min: number; max: number }) {
-  const [text, setText] = React.useState(() => String(value))
-  const isEditing = React.useRef(false)
-  const normalize = (raw: string) => Math.min(max, Math.max(min, Math.round(Number(raw))))
-
-  React.useEffect(() => {
-    if (!isEditing.current) setText(String(value))
-  }, [value])
-
-  return <Input
-    id={id}
-    type="number"
-    inputMode="numeric"
-    min={min}
-    max={max}
-    value={text}
-    onFocus={() => { isEditing.current = true }}
-    onChange={event => {
-      const raw = event.target.value
-      setText(raw)
-      if (raw === "") return
-      const next = normalize(raw)
-      if (Number.isFinite(next)) onValueChange(next)
-    }}
-    onBlur={() => {
-      isEditing.current = false
-      if (text === "") { setText(String(value)); return }
-      const next = normalize(text)
-      setText(String(next))
-      if (next !== value) onValueChange(next)
-    }}
-  />
-}
-
 export function SetupPage({ embedded = false, onComplete }: { embedded?: boolean; onComplete?: () => void } = {}) {
-  const { scenario, setScenario, language, tx, money, percent } = useProduct()
+  const { scenario, setScenario, tx, money, percent } = useProduct()
   const [draft, setDraft] = React.useState<Scenario>(() => ({ ...scenario, downPayment: clampDownPayment(scenario) }))
   const [step, setStep] = React.useState(0)
   const [direction, setDirection] = React.useState<"forward" | "back">("forward")
   const [error, setError] = React.useState("")
-  const [openFuture, setOpenFuture] = React.useState<FutureEditor | null>(null)
   const steps = [tx("Today", "Bugün"), tx("The home", "Ev"), tx("Future assumptions", "Gelecek")]
   const update = (patch: Partial<Scenario>) => setDraft(current => { const next = { ...current, ...patch }; return normalizeScenario({ ...next, downPayment: clampDownPayment(next) }) })
   const allocation = downPaymentAllocation(draft)
   const Content = embedded ? "div" : "main"
   const headingRef = React.useRef<HTMLHeadingElement>(null)
   const previousStep = React.useRef(step)
-  const monthName = (month: number) => new Intl.DateTimeFormat(language === "tr" ? "tr-TR" : "en-US", { month: "long" }).format(new Date(2026, month, 1))
-  const annualSummary = (growth: number, month: number) => `${percent(growth)} ${tx("/ year", "/ yıl")} · ${monthName(month)}`
-  const supportIncluded = draft.upfrontSupport > 0 || draft.monthlySupport > 0
 
   React.useEffect(() => { if (embedded) setDraft({ ...scenario, downPayment: clampDownPayment(scenario) }) }, [embedded, scenario])
   React.useEffect(() => { if (previousStep.current !== step) headingRef.current?.focus({ preventScroll: true }); previousStep.current = step }, [step])
@@ -144,27 +90,7 @@ export function SetupPage({ embedded = false, onComplete }: { embedded?: boolean
             </CollapsibleContent></Collapsible>
           </section>}
 
-          {step === 2 && <section aria-labelledby="future-heading" className="max-w-[680px]"><h2 id="future-heading" ref={headingRef} tabIndex={-1} className="text-[25px] font-semibold tracking-[-.045em] outline-none">{tx("Future assumptions", "Gelecek varsayımları")}</h2><p className="mt-2 max-w-[560px] text-[12px] leading-5 text-ink-soft">{tx("These are annual scenario assumptions, not forecasts.", "Buradaki değişimler yıllık senaryo varsayımlarıdır, tahmin değildir.")}</p>
-            <div className="mt-6 border-y border-hairline">
-              <FutureSummaryRow title={tx("Income", "Gelir")} summary={annualSummary(draft.incomeGrowth, draft.raiseMonth)} open={openFuture === "income"} onToggle={() => setOpenFuture(openFuture === "income" ? null : "income")} editLabel={tx("Edit", "Düzenle")} doneLabel={tx("Done", "Bitti")}>
-                <div className="grid gap-5 sm:grid-cols-2 sm:items-end"><PercentInput id="income-growth" label={<FieldInfoLabel infoLabel={tx("About future income growth", "Gelecek gelir artışı hakkında")} info={tx("The annual income change applied in the selected month.", "Seçtiğin ayda uygulanan yıllık gelir değişimi.")}>{tx("Annual income change", "Yıllık gelir değişimi")}</FieldInfoLabel>} value={draft.incomeGrowth} onValueChange={incomeGrowth => { setError(""); update({ incomeGrowth }) }} min={-99.9} onConstraintViolation={() => setError(tx("Annual changes must be greater than −100%.", "Yıllık değişimler −%100'den büyük olmalı."))} /><MonthPicker value={draft.raiseMonth} onValueChange={raiseMonth => update({ raiseMonth })} label={tx("Raise month", "Zam ayı")} /></div>
-                <IncomeHistoryCalculator currentIncome={draft.income} onApply={incomeGrowth => update({ incomeGrowth })} />
-                <MinimumWageGrowthAction onUse={incomeGrowth => update({ incomeGrowth })} />
-              </FutureSummaryRow>
-              <FutureSummaryRow title={tx("Rent", "Kira")} summary={annualSummary(draft.rentGrowth, draft.rentRenewal)} open={openFuture === "rent"} onToggle={() => setOpenFuture(openFuture === "rent" ? null : "rent")} editLabel={tx("Edit", "Düzenle")} doneLabel={tx("Done", "Bitti")}>
-                <div className="grid gap-5 sm:grid-cols-2 sm:items-end"><PercentInput id="rent-growth" label={<FieldInfoLabel infoLabel={tx("About future rent change", "Gelecek kira artışı hakkında")} info={tx("The annual rent change applied in the selected renewal month.", "Seçtiğin yenileme ayında uygulanan yıllık kira değişimi.")}>{tx("Annual rent change", "Yıllık kira değişimi")}</FieldInfoLabel>} value={draft.rentGrowth} onValueChange={rentGrowth => { setError(""); update({ rentGrowth }) }} min={-99.9} onConstraintViolation={() => setError(tx("Annual changes must be greater than −100%.", "Yıllık değişimler −%100'den büyük olmalı."))} /><MonthPicker value={draft.rentRenewal} onValueChange={rentRenewal => update({ rentRenewal })} label={tx("Renewal month", "Yenileme ayı")} /></div>
-                <RentGrowthCalculator currentRent={draft.rent} currentGrowth={draft.rentGrowth} onApply={rentGrowth => update({ rentGrowth })} />
-                <RentCeilingGrowthAction onUse={rentGrowth => update({ rentGrowth })} />
-              </FutureSummaryRow>
-              <FutureSummaryRow title={tx("Expenses", "Giderler")} summary={draft.expenseGrowth === 0 ? tx("No change", "Değişmiyor") : `${percent(draft.expenseGrowth)} ${tx("/ year", "/ yıl")}`} open={openFuture === "expenses"} onToggle={() => setOpenFuture(openFuture === "expenses" ? null : "expenses")} editLabel={tx("Edit", "Düzenle")} doneLabel={tx("Done", "Bitti")}>
-                <div className="max-w-[300px]"><PercentInput id="expense-growth" label={<FieldInfoLabel infoLabel={tx("About expense growth", "Gider artışı hakkında")} info={tx("The annual change applied to regular living costs.", "Düzenli yaşam giderlerine uygulanan yıllık değişim.")}>{tx("Annual expense change", "Yıllık gider değişimi")}</FieldInfoLabel>} value={draft.expenseGrowth} onValueChange={expenseGrowth => { setError(""); update({ expenseGrowth }) }} min={-99.9} onConstraintViolation={() => setError(tx("Annual changes must be greater than −100%.", "Yıllık değişimler −%100'den büyük olmalı."))} /></div>
-              </FutureSummaryRow>
-              <FutureSummaryRow title={tx("Other assumptions", "Diğer varsayımlar")} summary={`${draft.horizon} ${tx("years", "yıl")} · ${supportIncluded ? tx("Support included", "Destek dahil") : tx("No support", "Destek yok")}`} open={openFuture === "other"} onToggle={() => setOpenFuture(openFuture === "other" ? null : "other")} editLabel={tx("Edit", "Düzenle")} doneLabel={tx("Done", "Bitti")}>
-                <div className="max-w-[300px]"><Field><FieldLabel htmlFor="horizon" className="flex items-center gap-1">{tx("Scenario length (years)", "Senaryo süresi (yıl)")}<FieldInfo label={tx("About scenario length", "Senaryo süresi hakkında")}>{tx("Controls how many years the comparison shows; it does not change the mortgage term.", "Karşılaştırmada gösterilen yılı belirler; kredi vadesini değiştirmez.")}</FieldInfo></FieldLabel><IntegerInput id="horizon" value={draft.horizon} onValueChange={horizon => update({ horizon })} min={1} max={40} /></Field></div>
-                <SupportInputs scenario={draft} update={update} compact />
-              </FutureSummaryRow>
-            </div>
-          </section>}
+          {step === 2 && <FutureAssumptions scenario={draft} update={update} headingRef={headingRef} />}
           </div>
 
           {error && <p role="alert" className="mt-5 text-[12px] font-medium text-destructive">{error}</p>}

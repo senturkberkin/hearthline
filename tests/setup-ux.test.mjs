@@ -10,6 +10,8 @@ const monthPicker=readFileSync(new URL('../design-preview/src/components/product
 const incomeHistory=readFileSync(new URL('../design-preview/src/components/product/income-history-calculator.tsx',import.meta.url),'utf8');
 const rentGrowth=readFileSync(new URL('../design-preview/src/components/product/rent-growth-calculator.tsx',import.meta.url),'utf8');
 const growthReferences=readFileSync(new URL('../design-preview/src/components/product/growth-reference-action.tsx',import.meta.url),'utf8');
+const futureAssumptions=readFileSync(new URL('../design-preview/src/components/product/future-assumptions.tsx',import.meta.url),'utf8');
+const integerInput=readFileSync(new URL('../design-preview/src/components/product/integer-input.tsx',import.meta.url),'utf8');
 const rentReference=JSON.parse(readFileSync(new URL('../rent-reference.json',import.meta.url),'utf8'));
 const publicRentReference=JSON.parse(readFileSync(new URL('../design-preview/public/rent-reference.json',import.meta.url),'utf8'));
 const wageReference=JSON.parse(readFileSync(new URL('../design-preview/public/minimum-wage-reference.json',import.meta.url),'utf8'));
@@ -21,8 +23,9 @@ test('S01 setup asks for present-day facts before home and future assumptions',(
   assert.match(setup,/tx\("Today", "Bugün"\).*tx\("The home", "Ev"\).*tx\("Future assumptions", "Gelecek"\)/s);
   const today=setup.indexOf('id="current-income"');
   const home=setup.indexOf('id="home-price"');
-  const future=setup.indexOf('id="income-growth"');
+  const future=setup.indexOf('<FutureAssumptions');
   assert.ok(today>=0 && home>today && future>home);
+  assert.match(futureAssumptions,/id="income-growth"/);
   assert.match(setup,/id="current-rent"/);
   assert.match(setup,/id="living-costs"/);
   assert.match(setup,/id="savings"/);
@@ -65,11 +68,11 @@ test('S06 obvious fields remain explanation-free while high-risk fields are expl
 });
 
 test('S07 year fields can be cleared while someone replaces their value',()=>{
-  assert.match(setup,/function IntegerInput/);
-  assert.match(setup,/if \(raw === ""\) return/);
-  assert.match(setup,/if \(text === ""\) \{ setText\(String\(value\)\); return \}/);
+  assert.match(integerInput,/function IntegerInput/);
+  assert.match(integerInput,/if \(raw === ""\) return/);
+  assert.match(integerInput,/if \(text === ""\) \{ setText\(String\(value\)\); return \}/);
   assert.match(setup,/<IntegerInput id="loan-term" value=\{draft\.termYears\}/);
-  assert.match(setup,/<IntegerInput id="horizon" value=\{draft\.horizon\}/);
+  assert.match(futureAssumptions,/<IntegerInput id="horizon" value=\{scenario\.horizon\}/);
 });
 
 test('S08 aligned labels and methodology links do not leave the user on the results view',()=>{
@@ -85,19 +88,22 @@ test('S09 month selection uses a compact native control in narrow assumption col
   assert.doesNotMatch(monthPicker,/ToggleGroup/);
 });
 
-test('S10 future assumptions are compact summaries with one editor open at a time',()=>{
-  assert.match(setup,/type FutureEditor = "income" \| "rent" \| "expenses" \| "other"/);
-  assert.match(setup,/const \[openFuture, setOpenFuture\] = React\.useState<FutureEditor \| null>\(null\)/);
-  assert.equal((setup.match(/<FutureSummaryRow/g) || []).length,4);
-  assert.match(setup,/openFuture === "income" \? null : "income"/);
-  assert.match(setup,/openFuture === "rent" \? null : "rent"/);
-  assert.match(setup,/openFuture === "expenses" \? null : "expenses"/);
-  assert.match(setup,/openFuture === "other" \? null : "other"/);
-  assert.match(setup,/id="income-growth"[\s\S]*?<MonthPicker value=\{draft\.raiseMonth\}/);
-  assert.match(setup,/id="rent-growth"[\s\S]*?<MonthPicker value=\{draft\.rentRenewal\}/);
-  assert.match(setup,/These are annual scenario assumptions, not forecasts/);
-  assert.match(setup,/Buradaki değişimler yıllık senaryo varsayımlarıdır, tahmin değildir/);
-  assert.doesNotMatch(setup,/AssumptionFieldLabel/);
+test('S10 future assumptions use a stable overview and one focused responsive editor',()=>{
+  assert.match(futureAssumptions,/type FutureEditor = "income" \| "rent" \| "expenses" \| "other"/);
+  assert.match(futureAssumptions,/const \[active, setActive\] = React\.useState<FutureEditor \| null>\(null\)/);
+  assert.equal((futureAssumptions.match(/<AssumptionChoice/g) || []).length,3);
+  assert.match(futureAssumptions,/<PlanningChoice/);
+  assert.match(futureAssumptions,/setActive\("income"\)/);
+  assert.match(futureAssumptions,/setActive\("rent"\)/);
+  assert.match(futureAssumptions,/setActive\("expenses"\)/);
+  assert.match(futureAssumptions,/setActive\("other"\)/);
+  assert.match(futureAssumptions,/DialogPrimitive\.Content className="assumption-editor-panel/);
+  assert.match(futureAssumptions,/id="income-growth"[\s\S]*?<MonthPicker value=\{scenario\.raiseMonth\}/);
+  assert.match(futureAssumptions,/id="rent-growth"[\s\S]*?<MonthPicker value=\{scenario\.rentRenewal\}/);
+  assert.match(futureAssumptions,/Annual scenario assumptions—not forecasts/);
+  assert.match(futureAssumptions,/Yıllık senaryo varsayımlarıdır; tahmin değildir/);
+  assert.match(styles,/assumption-editor-panel\[data-state="open"\]/);
+  assert.doesNotMatch(futureAssumptions,/AssumptionFieldLabel/);
   assert.match(incomeHistory,/DialogPrimitive\.Content/);
   assert.match(rentGrowth,/DialogPrimitive\.Content/);
   assert.doesNotMatch(incomeHistory,/Collapsible/);
@@ -105,8 +111,8 @@ test('S10 future assumptions are compact summaries with one editor open at a tim
 });
 
 test('S11 official growth shortcuts are dated, click-to-apply and kept current',()=>{
-  assert.match(setup,/<MinimumWageGrowthAction onUse=\{incomeGrowth => update\(\{ incomeGrowth \}\)\}/);
-  assert.match(setup,/<RentCeilingGrowthAction onUse=\{rentGrowth => update\(\{ rentGrowth \}\)\}/);
+  assert.match(futureAssumptions,/<MinimumWageGrowthAction onUse=\{incomeGrowth => update\(\{ incomeGrowth \}\)\}/);
+  assert.match(futureAssumptions,/<RentCeilingGrowthAction onUse=\{rentGrowth => update\(\{ rentGrowth \}\)\}/);
   assert.match(growthReferences,/Use \$\{data\.period\} minimum-wage increase.*\$\{data\.period\} asgari ücret artışını kullan/);
   assert.match(growthReferences,/Use rent ceiling.*Kira üst sınırını kullan/);
   assert.doesNotMatch(growthReferences,/Applied every year in this scenario; not a forecast/);
@@ -120,10 +126,10 @@ test('S11 official growth shortcuts are dated, click-to-apply and kept current',
 
 test('S12 growth inputs expose the strict lower boundary and explain rejected values',()=>{
   for (const id of ['income-growth','rent-growth','expense-growth']) {
-    assert.match(setup,new RegExp(`id="${id}"[\\s\\S]*?min=\\{-99\\.9\\}`));
+    assert.match(futureAssumptions,new RegExp(`id="${id}"[\\s\\S]*?min=\\{-99\\.9\\}`));
   }
-  assert.match(setup,/Annual changes must be greater than −100%/);
-  assert.match(setup,/Yıllık değişimler −%100'den büyük olmalı/);
+  assert.match(futureAssumptions,/Annual changes must be greater than −100%/);
+  assert.match(futureAssumptions,/Yıllık değişimler −%100'den büyük olmalı/);
 });
 
 test('S13 monthly support is visibly capped by the current mortgage payment',()=>{
