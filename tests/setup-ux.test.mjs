@@ -75,11 +75,12 @@ test('S07 year fields can be cleared while someone replaces their value',()=>{
   assert.match(futureAssumptions,/<IntegerInput id="horizon" value=\{scenario\.horizon\}/);
 });
 
-test('S08 aligned labels and methodology links do not leave the user on the results view',()=>{
+test('S08 aligned labels and direct planner links do not leave the user on the results view',()=>{
   assert.match(financialInput,/min-h-7 items-center text-\[12px\]/);
   assert.match(setup,/mt-7 grid gap-5 sm:grid-cols-2 sm:items-end/);
   assert.match(home,/window\.location\.hash\.slice\(1\)/);
   assert.match(home,/document\.getElementById\(id\)\?\.scrollIntoView\(\)/);
+  assert.doesNotMatch(home,/SectionNav|how-it-works|id="methodology"/);
 });
 
 test('S09 month selection uses a compact native control in narrow assumption columns',()=>{

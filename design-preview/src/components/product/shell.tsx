@@ -20,7 +20,8 @@ export function BrandHeader({ mode = "public" }: { mode?: "public" | "app" }) {
     <div className="mx-auto flex h-[68px] max-w-[1240px] items-center justify-between gap-5 px-5 sm:px-8">
       <Brand />
       <nav aria-label="Main navigation" className="hidden items-center gap-7 text-[13px] font-medium text-ink-soft md:flex">
-        {mode === "public" ? <><a href={sitePath("/#methodology")} className="hover:text-foreground">{tx("Methodology", "Yöntem")}</a><a href={sitePath("/privacy/")} className="hover:text-foreground">{tx("Privacy", "Gizlilik")}</a></> : <><a href={sitePath("/")} className="hover:text-foreground">{tx("About the tool", "Araç hakkında")}</a><a href={sitePath("/#methodology")} className="hover:text-foreground">{tx("Methodology", "Yöntem")}</a></>}
+        <a href={sitePath("/privacy/")} className="hover:text-foreground">{tx("Privacy", "Gizlilik")}</a>
+        <a href={sitePath("/terms/")} className="hover:text-foreground">{tx("Terms", "Koşullar")}</a>
         {settings}
         {mode === "app" && <a href={sitePath("/#workspace")} className="rounded-full bg-[#eef1ff] px-4 py-2 font-semibold text-primary hover:bg-[#e2e8ff]">{tx("Back to planner", "Planlayıcıya dön")}</a>}
       </nav>
@@ -30,7 +31,6 @@ export function BrandHeader({ mode = "public" }: { mode?: "public" | "app" }) {
           <SheetHeader><SheetTitle className="text-left">{tx("Navigate", "Gezin")}</SheetTitle></SheetHeader>
           <nav aria-label="Mobile navigation" className="grid gap-1 px-4 text-[15px] font-medium">
             {mode === "app" && <a className="rounded-lg px-3 py-3 hover:bg-muted" href={sitePath("/#workspace")}>{tx("Back to planner", "Planlayıcıya dön")}</a>}
-            <a className="rounded-lg px-3 py-3 hover:bg-muted" href={sitePath("/#methodology")}>{tx("Methodology", "Yöntem")}</a>
             <a className="rounded-lg px-3 py-3 hover:bg-muted" href={sitePath("/privacy/")}>{tx("Privacy", "Gizlilik")}</a>
             <a className="rounded-lg px-3 py-3 hover:bg-muted" href={sitePath("/terms/")}>{tx("Terms", "Koşullar")}</a>
             <div className="px-3 pt-4">{settings}</div>
@@ -47,7 +47,7 @@ export function PublicFooter() {
     <MakerInvitation />
     <div className="mx-auto grid max-w-[1240px] gap-9 px-5 pb-8 pt-7 sm:px-8 sm:pb-10 md:grid-cols-[1fr_auto]">
       <div><Brand /><p className="mt-4 max-w-[350px] text-[13px] leading-5 text-muted-foreground">{tx("A private place to understand a housing decision. Your scenario, not a prediction.", "Konut kararını anlamak için özel bir alan. Senin senaryon, bir tahmin değil.")}</p></div>
-      <div className="flex flex-wrap items-start gap-x-6 gap-y-3 text-[13px] font-medium text-ink-soft"><a href={sitePath("/#methodology")} className="hover:text-primary">{tx("Methodology", "Yöntem")}</a><a href={sitePath("/privacy/")} className="hover:text-primary">{tx("Privacy", "Gizlilik")}</a><a href={sitePath("/terms/")} className="hover:text-primary">{tx("Terms", "Koşullar")}</a><a href={sitePath("/#workspace")} className="inline-flex items-center gap-1 text-primary hover:underline">{tx("Back to planner", "Planlayıcıya dön")} <ArrowRight className="size-3.5" /></a></div>
+      <div className="flex flex-wrap items-start gap-x-6 gap-y-3 text-[13px] font-medium text-ink-soft"><a href={sitePath("/privacy/")} className="hover:text-primary">{tx("Privacy", "Gizlilik")}</a><a href={sitePath("/terms/")} className="hover:text-primary">{tx("Terms", "Koşullar")}</a><a href={sitePath("/#workspace")} className="inline-flex items-center gap-1 text-primary hover:underline">{tx("Back to planner", "Planlayıcıya dön")} <ArrowRight className="size-3.5" /></a></div>
     </div>
     <div className="mx-auto max-w-[1240px] px-5 pb-5 text-[11px] text-muted-foreground sm:px-8">© 2026 Hearthline</div>
   </footer>
