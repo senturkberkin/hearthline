@@ -25,7 +25,7 @@ export function HomePage() {
     const frame = window.requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView())
     return () => window.cancelAnimationFrame(frame)
   }, [])
-  return <div className="min-h-screen bg-white text-foreground">
+  return <div className="min-h-screen bg-[#f5f7fd] text-foreground">
     <BrandHeader />
     <main>
       <section id="workspace" aria-label={tx("Rent versus buy planner", "Kira ve ev alma planlayıcısı")} className="scroll-mt-20 bg-background">
