@@ -4,6 +4,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { useProduct } from "@/lib/product-context"
 import { sitePath } from "@/lib/utils"
+import { analyticsConfigured, OPEN_ANALYTICS_SETTINGS_EVENT } from "@/lib/analytics"
 
 export function Brand() {
   return <a href={sitePath("/?view=setup")} className="inline-flex items-center gap-2.5 font-semibold tracking-[-.035em] text-foreground" aria-label="Hearthline home">
@@ -47,7 +48,7 @@ export function PublicFooter() {
     <MakerInvitation />
     <div className="mx-auto grid max-w-[1240px] gap-9 px-5 pb-8 pt-7 sm:px-8 sm:pb-10 md:grid-cols-[1fr_auto]">
       <div><Brand /><p className="mt-4 max-w-[350px] text-[13px] leading-5 text-muted-foreground">{tx("A private place to understand a housing decision. Your scenario, not a prediction.", "Konut kararını anlamak için özel bir alan. Senin senaryon, bir tahmin değil.")}</p></div>
-      <div className="flex flex-wrap items-start gap-x-6 gap-y-3 text-[13px] font-medium text-ink-soft"><a href={sitePath("/privacy/")} className="hover:text-primary">{tx("Privacy", "Gizlilik")}</a><a href={sitePath("/terms/")} className="hover:text-primary">{tx("Terms", "Koşullar")}</a><a href={sitePath("/#workspace")} className="inline-flex items-center gap-1 text-primary hover:underline">{tx("Back to planner", "Planlayıcıya dön")} <ArrowRight className="size-3.5" /></a></div>
+      <div className="flex flex-wrap items-start gap-x-6 gap-y-3 text-[13px] font-medium text-ink-soft"><a href={sitePath("/privacy/")} className="hover:text-primary">{tx("Privacy", "Gizlilik")}</a><a href={sitePath("/terms/")} className="hover:text-primary">{tx("Terms", "Koşullar")}</a>{analyticsConfigured && <button type="button" onClick={() => window.dispatchEvent(new Event(OPEN_ANALYTICS_SETTINGS_EVENT))} className="hover:text-primary">{tx("Analytics settings", "Analitik ayarları")}</button>}<a href={sitePath("/#workspace")} className="inline-flex items-center gap-1 text-primary hover:underline">{tx("Back to planner", "Planlayıcıya dön")} <ArrowRight className="size-3.5" /></a></div>
     </div>
     <div className="mx-auto max-w-[1240px] px-5 pb-5 text-[11px] text-muted-foreground sm:px-8">© 2026 Hearthline</div>
   </footer>

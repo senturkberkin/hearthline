@@ -9,6 +9,7 @@ import { PrintReportPage } from "@/pages/print-report"
 import { ProductProvider } from "@/lib/product-context"
 import { useProduct } from "@/lib/product-context"
 import { sitePath } from "@/lib/utils"
+import { AnalyticsConsent } from "@/components/product/analytics-consent"
 import "./index.css"
 
 function ResultsRoute() {
@@ -23,7 +24,7 @@ function AppContent() {
   const { reportOpen } = useProduct()
   const path = window.location.pathname.replace(/\/$/, "")
   const page = path.endsWith("/setup") ? <SetupPage /> : path.endsWith("/results") ? <ResultsRoute /> : path.endsWith("/privacy") ? <PrivacyPage /> : path.endsWith("/terms") ? <TermsPage /> : <HomePage />
-  return <TooltipProvider>{reportOpen ? <PrintReportPage /> : page}</TooltipProvider>
+  return <TooltipProvider>{reportOpen ? <PrintReportPage /> : page}<AnalyticsConsent /></TooltipProvider>
 }
 
 ReactDOM.createRoot(document.getElementById("root")!).render(<React.StrictMode><ProductProvider><AppContent /></ProductProvider></React.StrictMode>)

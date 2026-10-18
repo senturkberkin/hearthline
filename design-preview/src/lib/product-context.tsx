@@ -13,11 +13,11 @@ const savedStore = createSavedScenarioStore()
 const pageMetadata = {
   en: {
     title: "Hearthline — Rent vs. buy planner",
-    description: "Compare rent and buy cash flow using your own assumptions. Your data stays in your browser; a planning aid, not advice.",
+    description: "Compare rent and buy cash flow using your own assumptions. Your calculator data stays in your browser; a planning aid, not advice.",
   },
   tr: {
     title: "Hearthline — Kira mı, ev almak mı?",
-    description: "Kira ve ev alma nakit akışını kendi varsayımlarınla karşılaştır. Verilerin tarayıcında kalır; planlama aracıdır, tavsiye değildir.",
+    description: "Kira ve ev alma nakit akışını kendi varsayımlarınla karşılaştır. Hesaplama verilerin tarayıcında kalır; planlama aracıdır, tavsiye değildir.",
   },
 } as const
 
