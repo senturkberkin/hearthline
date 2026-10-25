@@ -70,12 +70,6 @@ export function startAnalytics() {
     analytics_storage: "denied",
   })
   gtag("set", "ads_data_redaction", true)
-  gtag("consent", "update", {
-    ad_storage: "denied",
-    ad_user_data: "denied",
-    ad_personalization: "denied",
-    analytics_storage: "granted",
-  })
   gtag("js", new Date())
   const pageLocation = sanitizedPageLocation()
   const pageReferrer = sanitizedReferrer()
@@ -88,18 +82,30 @@ export function startAnalytics() {
     ...(pageReferrer ? { page_referrer: pageReferrer } : {}),
     send_page_view: false,
   })
+  gtag("consent", "update", {
+    ad_storage: "denied",
+    ad_user_data: "denied",
+    ad_personalization: "denied",
+    analytics_storage: "granted",
+  })
 
   const script = document.createElement("script")
   script.async = true
   script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(analyticsMeasurementId)}`
   script.dataset.hearthlineAnalytics = "true"
+  script.addEventListener("load", () => {
+    gtag("event", "page_view", {
+      send_to: analyticsMeasurementId,
+      page_title: safePageTitle(window.location.pathname),
+      page_location: pageLocation,
+      ...(pageReferrer ? { page_referrer: pageReferrer } : {}),
+    })
+  }, { once: true })
+  script.addEventListener("error", () => {
+    analyticsStarted = false
+    script.remove()
+  }, { once: true })
   document.head.appendChild(script)
-
-  gtag("event", "page_view", {
-    page_title: safePageTitle(window.location.pathname),
-    page_location: pageLocation,
-    ...(pageReferrer ? { page_referrer: pageReferrer } : {}),
-  })
 }
 
 function expireCookie(name: string, domain?: string) {

@@ -27,6 +27,8 @@ test('A03 analytics sends only a manually controlled sanitized page view',()=>{
   assert.match(analytics,/send_page_view: false/);
   assert.equal((analytics.match(/gtag\("event"/g)||[]).length,1);
   assert.match(analytics,/gtag\("event", "page_view"/);
+  assert.match(analytics,/script\.addEventListener\("load"/);
+  assert.match(analytics,/send_to: analyticsMeasurementId/);
   assert.match(analytics,/return `\$\{location\.origin\}\$\{location\.pathname\}`/);
   assert.match(analytics,/new URL\(referrer\)\.origin \+ "\/"/);
   assert.doesNotMatch(analytics,/@\/lib\/engine|product-context|sessionStorage/);
