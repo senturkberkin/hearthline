@@ -19,6 +19,7 @@ test('A02 the Google tag stays blocked until an explicit analytics grant',()=>{
   assert.match(consent,/if \(choice === "granted"\) startAnalytics\(\)/);
   assert.match(consent,/choose\("denied"\)/);
   assert.match(consent,/choose\("granted"\)/);
+  assert.match(analytics,/dataLayer\?\.push\(arguments\)/);
   assert.match(analytics,/analytics_storage: "denied"/);
   assert.match(main,/<AnalyticsConsent \/>/);
 });

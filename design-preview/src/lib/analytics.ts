@@ -52,7 +52,7 @@ function safePageTitle(pathname: string) {
 
 function getGtag() {
   window.dataLayer ||= []
-  window.gtag ||= (...args: unknown[]) => { window.dataLayer?.push(args) }
+  window.gtag ||= function gtag() { window.dataLayer?.push(arguments) }
   return window.gtag
 }
 
