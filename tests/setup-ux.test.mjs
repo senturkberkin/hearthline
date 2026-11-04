@@ -16,6 +16,7 @@ const rentReference=JSON.parse(readFileSync(new URL('../rent-reference.json',imp
 const publicRentReference=JSON.parse(readFileSync(new URL('../design-preview/public/rent-reference.json',import.meta.url),'utf8'));
 const wageReference=JSON.parse(readFileSync(new URL('../design-preview/public/minimum-wage-reference.json',import.meta.url),'utf8'));
 const rentWorkflow=readFileSync(new URL('../.github/workflows/refresh-rent-reference.yml',import.meta.url),'utf8');
+const deployWorkflow=readFileSync(new URL('../.github/workflows/deploy-pages.yml',import.meta.url),'utf8');
 const main=readFileSync(new URL('../design-preview/src/main.tsx',import.meta.url),'utf8');
 const styles=readFileSync(new URL('../design-preview/src/index.css',import.meta.url),'utf8');
 
@@ -126,6 +127,10 @@ test('S11 official growth shortcuts are dated, click-to-apply and kept current',
   assert.match(wageReference.sourceUrl,/^https:\/\/(www\.)?csgb\.gov\.tr\//);
   assert.deepEqual(publicRentReference,rentReference);
   assert.match(rentWorkflow,/git add rent-reference\.json design-preview\/public\/rent-reference\.json/);
+  assert.match(rentWorkflow,/cron: '17 6-18 \* \* \*'/);
+  assert.match(rentWorkflow,/changed: \$\{\{ steps\.commit\.outputs\.changed \}\}/);
+  assert.match(rentWorkflow,/uses: \.\/\.github\/workflows\/deploy-pages\.yml/);
+  assert.match(deployWorkflow,/workflow_call:/);
 });
 
 test('S12 growth inputs expose the strict lower boundary and explain rejected values',()=>{
