@@ -127,7 +127,7 @@ test('S11 official growth shortcuts are dated, click-to-apply and kept current',
   assert.match(wageReference.sourceUrl,/^https:\/\/(www\.)?csgb\.gov\.tr\//);
   assert.deepEqual(publicRentReference,rentReference);
   assert.match(rentWorkflow,/git add rent-reference\.json design-preview\/public\/rent-reference\.json/);
-  assert.match(rentWorkflow,/cron: '17 \* \* \* \*'/);
+  assert.match(rentWorkflow,/cron: '17 8 \* \* \*'/);
   assert.match(rentWorkflow,/changed: \$\{\{ steps\.commit\.outputs\.changed \}\}/);
   assert.match(rentWorkflow,/uses: \.\/\.github\/workflows\/deploy-pages\.yml/);
   assert.match(deployWorkflow,/workflow_call:/);
