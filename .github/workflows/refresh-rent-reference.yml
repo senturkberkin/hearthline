@@ -1,9 +1,9 @@
 name: Refresh official rent reference
 on:
   schedule:
-    # TÜİK normally publishes during the Turkish business day. Check hourly so
-    # a newly published observation reaches the product without a manual edit.
-    - cron: '17 6-18 * * *'
+    # Check hourly so a newly published observation reaches the product without
+    # a manual edit, even when the official dataset changes outside office hours.
+    - cron: '17 * * * *'
   workflow_dispatch:
 permissions:
   contents: write
@@ -12,6 +12,7 @@ permissions:
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     outputs:
       changed: ${{ steps.commit.outputs.changed }}
     steps:
