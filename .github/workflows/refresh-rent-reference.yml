@@ -1,9 +1,9 @@
 name: Refresh official rent reference
 on:
   schedule:
-    # TÜİK updates this monthly. Check once each day shortly after its usual
-    # publication time so a new observation deploys without needless polling.
-    - cron: '17 8 * * *'
+    # TÜİK updates this monthly. Check twice a month, 15 days apart, shortly
+    # after the usual monthly publication window.
+    - cron: '17 8 4,19 * *'
   workflow_dispatch:
 permissions:
   contents: write
